@@ -4,12 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import logo from '../assets/logo.svg';
-
+//home page design
 function Home() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
-
+//data fetching funtion
   useEffect(() => {
     axios
       .get('http://localhost:5000/api/auth/session', { withCredentials: true })
