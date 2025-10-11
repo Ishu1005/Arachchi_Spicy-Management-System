@@ -41,6 +41,7 @@ const customerRoutes = require('./routes/customerRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const deliveryRoutes = require('./routes/deliveryRoutes');
+const { connectDB } = require('./config/dbconnection');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/inventory', inventoryRoutes);
@@ -55,6 +56,7 @@ app.use('/api/delivery', deliveryRoutes);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
+  connectDB()
   console.log(`🎂 Server running on http://localhost:${PORT}`);
   console.log('✅ Server started successfully');
 });
