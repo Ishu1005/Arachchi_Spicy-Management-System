@@ -415,7 +415,7 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
         </div>
 
         {/* Order Information Section */}
-        {form.orderId && form.orderInfo.orderNumber && (
+        {form.orderId && form.orderInfo?.orderNumber && (
           <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg border border-amber-200">
             <div className="flex items-center mb-4">
               <span className="text-2xl mr-2">📋</span>
@@ -426,24 +426,24 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-gray-600">Order ID:</span>
-                  <span className="text-sm font-semibold text-amber-700">{form.orderInfo.orderNumber}</span>
+                  <span className="text-sm font-semibold text-amber-700">{form.orderInfo?.orderNumber || 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-gray-600">Order Date:</span>
-                  <span className="text-sm text-gray-800">{new Date(form.orderInfo.orderDate).toLocaleDateString()}</span>
+                  <span className="text-sm text-gray-800">{form.orderInfo?.orderDate ? new Date(form.orderInfo.orderDate).toLocaleDateString() : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-gray-600">Total Amount:</span>
-                  <span className="text-sm font-semibold text-green-600">Rs. {form.orderInfo.totalAmount}</span>
+                  <span className="text-sm font-semibold text-green-600">Rs. {form.orderInfo?.totalAmount || 0}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium text-gray-600">Payment Status:</span>
                   <span className={`text-sm px-2 py-1 rounded-full ${
-                    form.orderInfo.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
-                    form.orderInfo.paymentStatus === 'cod' ? 'bg-blue-100 text-blue-800' :
+                    form.orderInfo?.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                    form.orderInfo?.paymentStatus === 'cod' ? 'bg-blue-100 text-blue-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {form.orderInfo.paymentStatus.toUpperCase()}
+                    {(form.orderInfo?.paymentStatus || 'pending').toUpperCase()}
                   </span>
                 </div>
               </div>
@@ -451,10 +451,10 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
               <div>
                 <h4 className="text-sm font-medium text-gray-600 mb-2">Ordered Products:</h4>
                 <div className="space-y-1 max-h-32 overflow-y-auto">
-                  {form.orderInfo.productsList.map((item, index) => (
+                  {(form.orderInfo?.productsList || []).map((item, index) => (
                     <div key={index} className="flex justify-between text-xs bg-white p-2 rounded border">
-                      <span>{item.name || item.productName}</span>
-                      <span className="text-gray-600">Qty: {item.quantity}</span>
+                      <span>{item?.name || item?.productName || 'Unknown Product'}</span>
+                      <span className="text-gray-600">Qty: {item?.quantity || 0}</span>
                     </div>
                   ))}
                 </div>
