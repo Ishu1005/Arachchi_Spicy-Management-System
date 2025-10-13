@@ -2,13 +2,55 @@ import React from 'react';
 
 // Simple Bar Chart Component
 export const BarChart = ({ data, title, color = '#7B3F00' }) => {
-  const maxValue = Math.max(...data.map(item => item.value));
+  // Handle both Chart.js format and simple array format
+  let chartData = [];
+  
+  if (!data) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">No data available</div>
+      </div>
+    );
+  }
+  
+  // If data is in Chart.js format (has labels and datasets)
+  if (data.labels && data.datasets && data.datasets[0]) {
+    chartData = data.labels.map((label, index) => ({
+      label: label,
+      value: data.datasets[0].data[index] || 0
+    }));
+  } 
+  // If data is already in simple array format
+  else if (Array.isArray(data)) {
+    chartData = data;
+  }
+  // If data is not in expected format, return empty state
+  else {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">Invalid data format</div>
+      </div>
+    );
+  }
+  
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">No data to display</div>
+      </div>
+    );
+  }
+  
+  const maxValue = Math.max(...chartData.map(item => item.value));
   
   return (
     <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
       <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
       <div className="space-y-3">
-        {data.map((item, index) => (
+        {chartData.map((item, index) => (
           <div key={index} className="flex items-center">
             <div className="w-20 text-sm text-gray-600 truncate mr-3">
               {item.label}
@@ -35,7 +77,40 @@ export const BarChart = ({ data, title, color = '#7B3F00' }) => {
 
 // Simple Pie Chart Component
 export const PieChart = ({ data, title }) => {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  // Handle both Chart.js format and simple array format
+  let chartData = [];
+  
+  if (!data) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">No data available</div>
+      </div>
+    );
+  }
+  
+  // If data is in Chart.js format (has labels and datasets)
+  if (data.labels && data.datasets && data.datasets[0]) {
+    chartData = data.labels.map((label, index) => ({
+      name: label,
+      value: data.datasets[0].data[index] || 0
+    }));
+  } 
+  // If data is already in simple array format
+  else if (Array.isArray(data)) {
+    chartData = data;
+  }
+  // If data is not in expected format, return empty state
+  else {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">Invalid data format</div>
+      </div>
+    );
+  }
+  
+  const total = chartData.reduce((sum, item) => sum + (item.value || 0), 0);
   let cumulativePercentage = 0;
   
   const colors = [
@@ -49,7 +124,7 @@ export const PieChart = ({ data, title }) => {
       <div className="flex items-center justify-center">
         <div className="relative w-48 h-48">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            {data.map((item, index) => {
+            {chartData.map((item, index) => {
               const percentage = (item.value / total) * 100;
               const startAngle = cumulativePercentage * 3.6;
               const endAngle = (cumulativePercentage + percentage) * 3.6;
@@ -90,7 +165,7 @@ export const PieChart = ({ data, title }) => {
         </div>
       </div>
       <div className="mt-4 space-y-2">
-        {data.map((item, index) => (
+        {chartData.map((item, index) => (
           <div key={index} className="flex items-center justify-between">
             <div className="flex items-center">
               <div
@@ -111,8 +186,50 @@ export const PieChart = ({ data, title }) => {
 
 // Simple Line Chart Component
 export const LineChart = ({ data, title, color = '#7B3F00' }) => {
-  const maxValue = Math.max(...data.map(item => item.value));
-  const minValue = Math.min(...data.map(item => item.value));
+  // Handle both Chart.js format and simple array format
+  let chartData = [];
+  
+  if (!data) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">No data available</div>
+      </div>
+    );
+  }
+  
+  // If data is in Chart.js format (has labels and datasets)
+  if (data.labels && data.datasets && data.datasets[0]) {
+    chartData = data.labels.map((label, index) => ({
+      label: label,
+      value: data.datasets[0].data[index] || 0
+    }));
+  } 
+  // If data is already in simple array format
+  else if (Array.isArray(data)) {
+    chartData = data;
+  }
+  // If data is not in expected format, return empty state
+  else {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">Invalid data format</div>
+      </div>
+    );
+  }
+  
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md border border-amber-200">
+        <h3 className="text-lg font-semibold text-[#7B3F00] mb-4">{title}</h3>
+        <div className="text-center text-gray-500">No data to display</div>
+      </div>
+    );
+  }
+  
+  const maxValue = Math.max(...chartData.map(item => item.value));
+  const minValue = Math.min(...chartData.map(item => item.value));
   const range = maxValue - minValue;
   
   return (
@@ -138,16 +255,16 @@ export const LineChart = ({ data, title, color = '#7B3F00' }) => {
             fill="none"
             stroke={color}
             strokeWidth="3"
-            points={data.map((item, index) => {
-              const x = 40 + (index * 340) / (data.length - 1);
+            points={chartData.map((item, index) => {
+              const x = 40 + (index * 340) / (chartData.length - 1);
               const y = 200 - ((item.value - minValue) / range) * 160;
               return `${x},${y}`;
             }).join(' ')}
           />
           
           {/* Data points */}
-          {data.map((item, index) => {
-            const x = 40 + (index * 340) / (data.length - 1);
+          {chartData.map((item, index) => {
+            const x = 40 + (index * 340) / (chartData.length - 1);
             const y = 200 - ((item.value - minValue) / range) * 160;
             return (
               <circle
@@ -163,8 +280,8 @@ export const LineChart = ({ data, title, color = '#7B3F00' }) => {
           })}
           
           {/* Labels */}
-          {data.map((item, index) => {
-            const x = 40 + (index * 340) / (data.length - 1);
+          {chartData.map((item, index) => {
+            const x = 40 + (index * 340) / (chartData.length - 1);
           return (
               <text
                 key={index}
