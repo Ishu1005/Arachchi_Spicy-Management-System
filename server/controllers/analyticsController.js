@@ -1,83 +1,8 @@
 // Analytics controller for chart data
-const orderController = require('./orderController');
-
-// Sample orders data for analytics (same as orderController)
-let orders = [
-  {
-    _id: 1,
-    items: [
-      { name: 'Cinnamon', quantity: 2, category: 'Spices' },
-      { name: 'Cardamom', quantity: 1, category: 'Spices' },
-      { name: 'Black Pepper', quantity: 1, category: 'Spices' }
-    ],
-    customerName: 'Kamal Perera',
-    orderDate: '2024-01-15T10:00:00Z',
-    status: 'completed'
-  },
-  {
-    _id: 2,
-    items: [
-      { name: 'Pepper', quantity: 3, category: 'Spices' },
-      { name: 'Turmeric', quantity: 1, category: 'Spices' },
-      { name: 'Cumin', quantity: 2, category: 'Spices' }
-    ],
-    customerName: 'Nimal Fernando',
-    orderDate: '2024-01-16T14:30:00Z',
-    status: 'processing'
-  },
-  {
-    _id: 3,
-    items: [
-      { name: 'Cloves', quantity: 1, category: 'Spices' },
-      { name: 'Nutmeg', quantity: 2, category: 'Spices' }
-    ],
-    customerName: 'Sunil Rajapaksha',
-    orderDate: '2024-01-17T09:15:00Z',
-    status: 'completed'
-  },
-  {
-    _id: 4,
-    items: [
-      { name: 'Cinnamon', quantity: 1, category: 'Spices' },
-      { name: 'Ginger', quantity: 3, category: 'Spices' }
-    ],
-    customerName: 'Kamal Perera',
-    orderDate: '2024-01-18T11:20:00Z',
-    status: 'pending'
-  },
-  {
-    _id: 5,
-    items: [
-      { name: 'Cardamom', quantity: 2, category: 'Spices' },
-      { name: 'Star Anise', quantity: 1, category: 'Spices' },
-      { name: 'Bay Leaves', quantity: 1, category: 'Spices' }
-    ],
-    customerName: 'Priya Silva',
-    orderDate: '2024-01-19T15:45:00Z',
-    status: 'completed'
-  },
-  {
-    _id: 6,
-    items: [
-      { name: 'Turmeric', quantity: 2, category: 'Spices' },
-      { name: 'Coriander', quantity: 1, category: 'Spices' }
-    ],
-    customerName: 'Ajith Kumar',
-    orderDate: '2024-01-20T08:30:00Z',
-    status: 'processing'
-  }
-];
-
-// Get orders data
-const getOrdersData = () => {
-  console.log('Analytics: Getting orders data, count:', orders.length);
-  return orders;
-};
+let orders = []; // This will be synced with orderController
 
 exports.getSalesBySpiceType = async (req, res) => {
   try {
-    const orders = getOrdersData();
-    console.log('Sales by spice type - orders count:', orders.length);
     const spiceSales = {};
     
     orders.forEach(order => {
@@ -91,8 +16,6 @@ exports.getSalesBySpiceType = async (req, res) => {
         });
       }
     });
-    
-    console.log('Spice sales data:', spiceSales);
 
     const chartData = {
       labels: Object.keys(spiceSales),
@@ -131,7 +54,6 @@ exports.getSalesBySpiceType = async (req, res) => {
 
 exports.getCustomerOrderFrequency = async (req, res) => {
   try {
-    const orders = getOrdersData();
     const customerOrders = {};
     
     orders.forEach(order => {
@@ -166,7 +88,6 @@ exports.getCustomerOrderFrequency = async (req, res) => {
 
 exports.getMonthlyOrderTrend = async (req, res) => {
   try {
-    const orders = getOrdersData();
     const monthlyOrders = {};
     
     orders.forEach(order => {
@@ -211,7 +132,6 @@ exports.getMonthlyOrderTrend = async (req, res) => {
 
 exports.getOrderStatusDistribution = async (req, res) => {
   try {
-    const orders = getOrdersData();
     const statusCount = {};
     
     orders.forEach(order => {

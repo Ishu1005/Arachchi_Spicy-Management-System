@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.svg';
-import NotificationBell from './NotificationBell';
 
 function Navbar() {
   const [user, setUser] = useState(null);
@@ -90,9 +89,6 @@ function Navbar() {
 
       {/* Right: User Info and Logout */}
       <div className="flex items-center space-x-4">
-        {/* Notification Bell */}
-        <NotificationBell />
-        
         {user ? (
           <>
             {/* Wrap username in a Link to navigate to the profile page */}

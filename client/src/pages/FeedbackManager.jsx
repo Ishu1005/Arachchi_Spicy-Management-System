@@ -4,7 +4,7 @@ import FeedbackForm from '../components/FeedbackForm';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Papa from 'papaparse';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { motion } from 'framer-motion';
 import { MagnifyingGlassIcon, ArrowDownTrayIcon, StarIcon } from '@heroicons/react/24/solid';
 import { toast } from 'react-toastify';
@@ -72,182 +72,47 @@ function FeedbackManager() {
 
   const exportPDF = () => {
     const doc = new jsPDF();
-    
-    // Header
-    doc.setFontSize(20);
-    doc.text('ARACHCHCHI SPICES', 14, 22);
-    doc.setFontSize(16);
-    doc.text('Customer Feedback Report', 14, 32);
-    doc.setFontSize(12);
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 40);
-    
-    // Summary Statistics
-    const totalFeedback = feedback.length || Object.values(finalRatingData).reduce((sum, val) => sum + val, 0);
-    const averageRating = feedback.length > 0 ? 
-      (feedback.reduce((sum, f) => sum + f.rating, 0) / feedback.length).toFixed(1) :
-      (Object.entries(finalRatingData).reduce((sum, [rating, count]) => sum + (parseInt(rating) * count), 0) / totalFeedback).toFixed(1);
-    
-    doc.setFontSize(14);
-    doc.text('Summary Statistics:', 14, 50);
-    doc.setFontSize(10);
-    doc.text(`Total Feedback: ${totalFeedback}`, 14, 58);
-    doc.text(`Average Rating: ${averageRating} stars`, 14, 66);
-    
-    // Mood Statistics
-    doc.setFontSize(12);
-    doc.text('Mood Distribution:', 14, 78);
-    doc.setFontSize(10);
-    let yPos = 86;
-    emojiChartData.forEach((mood, index) => {
-      if (yPos > 280) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.text(`${mood.emoji} ${mood.mood}: ${mood.count} feedback`, 14, yPos);
-      yPos += 6;
-    });
-    
-    // Feedback Details Table
-    doc.addPage();
-    doc.setFontSize(16);
-    doc.text('Detailed Feedback Report', 14, 22);
-    
-    const tableColumn = ['Customer', 'Email', 'Product', 'Rating', 'Mood', 'Comment', 'Status', 'Date'];
-    const tableRows = feedback.length > 0 ? 
-      feedback.map(f => [
-        f.customerName || 'N/A',
-        f.customerEmail || 'N/A',
-        f.productName || f.productId?.name || 'N/A',
-        `${f.rating} ⭐`,
-        f.emojiReaction ? `${f.emojiReaction} ${f.mood || 'Unknown'}` : 'No mood',
-        f.comment ? f.comment.substring(0, 40) + (f.comment.length > 40 ? '...' : '') : 'No comment',
-        f.status || 'pending',
-        f.createdAt ? new Date(f.createdAt).toLocaleDateString() : 'N/A'
-      ]) :
-      // Sample data for demonstration
-      [
-        ['John Doe', 'john@email.com', 'Cinnamon', '5 ⭐', '😊 Happy', 'Excellent quality spices!', 'approved', '12/10/2025'],
-        ['Jane Smith', 'jane@email.com', 'Cardamom', '4 ⭐', '😌 Satisfied', 'Good product, fast delivery', 'approved', '12/9/2025'],
-        ['Mike Johnson', 'mike@email.com', 'Pepper', '3 ⭐', '😐 Neutral', 'Average quality', 'pending', '12/8/2025']
-      ];
-    
     autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 30,
-      styles: { 
-        fontSize: 8,
-        cellPadding: 3
-      },
-      headStyles: { 
-        fillColor: [123, 63, 0], // Brown color
-        textColor: [255, 255, 255], // White text
-        fontStyle: 'bold'
-      },
-      alternateRowStyles: {
-        fillColor: [255, 250, 242] // Light background
-      },
-      columnStyles: {
-        3: { halign: 'center' }, // Rating
-        4: { halign: 'center' }, // Mood
-        6: { halign: 'center' }, // Status
-        7: { halign: 'center' }  // Date
-      }
+      head: [['Customer', 'Product', 'Rating', 'Comment', 'Status', 'Date']],
+      body: feedback.map(f => [
+        f.customerName,
+        f.productId?.name || 'N/A',
+        f.rating,
+        f.comment.substring(0, 50) + '...',
+        f.status,
+        new Date(f.createdAt).toLocaleDateString()
+      ])
     });
-    
-    // Footer
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.text(`Page ${i} of ${pageCount}`, 14, doc.internal.pageSize.height - 10);
-      doc.text('ARACHCHCHI SPICES - Customer Feedback Management System',
-               doc.internal.pageSize.width - 14, doc.internal.pageSize.height - 10,
-               { align: 'right' });
-    }
-    
-    doc.save(`Feedback_Report_${new Date().toISOString().split('T')[0]}.pdf`);
-    toast.success('📄 Feedback PDF report generated successfully!');
+    doc.save('feedback-report.pdf');
   };
 
   const exportCSV = () => {
-    const csvData = feedback.length > 0 ? 
+    const csv = Papa.unparse(
       feedback.map(f => ({
-        Customer: f.customerName || 'N/A',
-        Email: f.customerEmail || 'N/A',
-        Product: f.productName || f.productId?.name || 'N/A',
+        Customer: f.customerName,
+        Email: f.customerEmail,
+        Product: f.productId?.name || 'N/A',
         Rating: f.rating,
-        Mood: f.mood || 'Unknown',
-        Emoji: f.emojiReaction || 'N/A',
-        Comment: f.comment || 'No comment',
-        Status: f.status || 'pending',
-        Date: f.createdAt ? new Date(f.createdAt).toLocaleDateString() : 'N/A'
-      })) :
-      // Sample data for demonstration
-      [
-        {
-          Customer: 'John Doe',
-          Email: 'john@email.com',
-          Product: 'Cinnamon',
-          Rating: 5,
-          Mood: 'Happy',
-          Emoji: '😊',
-          Comment: 'Excellent quality spices!',
-          Status: 'approved',
-          Date: '12/10/2025'
-        },
-        {
-          Customer: 'Jane Smith',
-          Email: 'jane@email.com',
-          Product: 'Cardamom',
-          Rating: 4,
-          Mood: 'Satisfied',
-          Emoji: '😌',
-          Comment: 'Good product, fast delivery',
-          Status: 'approved',
-          Date: '12/9/2025'
-        },
-        {
-          Customer: 'Mike Johnson',
-          Email: 'mike@email.com',
-          Product: 'Pepper',
-          Rating: 3,
-          Mood: 'Neutral',
-          Emoji: '😐',
-          Comment: 'Average quality',
-          Status: 'pending',
-          Date: '12/8/2025'
-        }
-      ];
-    
-    const csv = Papa.unparse(csvData);
+        Comment: f.comment,
+        Status: f.status,
+        Date: new Date(f.createdAt).toLocaleDateString()
+      }))
+    );
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `Feedback_Report_${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = 'feedback-report.csv';
     link.click();
-    toast.success('📊 Feedback CSV report generated successfully!');
   };
 
-  // Prepare chart data with fallback sample data
+  // Prepare chart data
   const ratingData = feedback.reduce((acc, f) => {
     const rating = f.rating;
     acc[rating] = (acc[rating] || 0) + 1;
     return acc;
   }, {});
 
-  // Sample rating data if no real data
-  const sampleRatingData = {
-    5: 8,
-    4: 5,
-    3: 3,
-    2: 1,
-    1: 1
-  };
-
-  const finalRatingData = Object.keys(ratingData).length > 0 ? ratingData : sampleRatingData;
-
-  const chartData = Object.entries(finalRatingData).map(([rating, count]) => ({
+  const chartData = Object.entries(ratingData).map(([rating, count]) => ({
     rating: `${rating} Star${rating > 1 ? 's' : ''}`,
     count
   }));
@@ -262,78 +127,7 @@ function FeedbackManager() {
     count
   }));
 
-  // Emoji reaction data with fallback sample data
-  const emojiData = feedback.reduce((acc, f) => {
-    if (f.emojiReaction && f.mood) {
-      acc[f.mood] = (acc[f.mood] || 0) + 1;
-    }
-    return acc;
-  }, {});
-
-  // If no emoji data, create sample data for demonstration
-  const sampleEmojiData = {
-    happy: 5,
-    satisfied: 3,
-    excited: 2,
-    neutral: 1,
-    disappointed: 1
-  };
-
-  const finalEmojiData = Object.keys(emojiData).length > 0 ? emojiData : sampleEmojiData;
-
-  const emojiChartData = Object.entries(finalEmojiData).map(([mood, count]) => ({
-    mood: mood.charAt(0).toUpperCase() + mood.slice(1),
-    count,
-    emoji: feedback.find(f => f.mood === mood)?.emojiReaction || 
-           (mood === 'happy' ? '😊' : 
-            mood === 'satisfied' ? '😌' : 
-            mood === 'excited' ? '🤩' : 
-            mood === 'neutral' ? '😐' : 
-            mood === 'disappointed' ? '😞' : '😐')
-  }));
-
-  // Mood trend data for line chart
-  const moodTrendData = feedback.reduce((acc, f) => {
-    if (f.mood && f.createdAt) {
-      const date = new Date(f.createdAt).toLocaleDateString();
-      if (!acc[date]) {
-        acc[date] = {};
-      }
-      acc[date][f.mood] = (acc[date][f.mood] || 0) + 1;
-    }
-    return acc;
-  }, {});
-
-  // Sample line chart data if no real data
-  const sampleLineData = [
-    { date: '12/8/2025', happy: 2, satisfied: 1, excited: 1, neutral: 0, disappointed: 0 },
-    { date: '12/9/2025', happy: 3, satisfied: 2, excited: 0, neutral: 1, disappointed: 0 },
-    { date: '12/10/2025', happy: 1, satisfied: 1, excited: 1, neutral: 0, disappointed: 1 }
-  ];
-
-  const lineChartData = Object.keys(moodTrendData).length > 0 ? 
-    Object.entries(moodTrendData)
-      .sort(([a], [b]) => new Date(a) - new Date(b))
-      .map(([date, moods]) => ({
-        date,
-        ...moods
-      })) : sampleLineData;
-
-  // Mood trend data for pie chart (overall distribution)
-  const moodTrendPieData = Object.entries(finalEmojiData).map(([mood, count]) => ({
-    mood: mood.charAt(0).toUpperCase() + mood.slice(1),
-    count,
-    emoji: feedback.find(f => f.mood === mood)?.emojiReaction || 
-           (mood === 'happy' ? '😊' : 
-            mood === 'satisfied' ? '😌' : 
-            mood === 'excited' ? '🤩' : 
-            mood === 'neutral' ? '😐' : 
-            mood === 'disappointed' ? '😞' : '😐'),
-    percentage: Object.values(finalEmojiData).reduce((sum, val) => sum + val, 0) > 0 ? 
-                Math.round((count / Object.values(finalEmojiData).reduce((sum, val) => sum + val, 0)) * 100) : 0
-  })).sort((a, b) => b.count - a.count); // Sort by count descending
-
-  const COLORS = ['#7B3F00', '#A0522D', '#D2691E', '#CD853F', '#DEB887', '#F4A460', '#D2B48C', '#BC9A6A'];
+  const COLORS = ['#7B3F00', '#A0522D', '#D2691E', '#CD853F', '#DEB887'];
 
   const renderStars = (rating) => {
     return Array.from({ length: 5 }, (_, i) => (
@@ -396,7 +190,6 @@ function FeedbackManager() {
               <th className="p-4">Customer</th>
               <th className="p-4">Product</th>
               <th className="p-4">Rating</th>
-              <th className="p-4">Mood</th>
               <th className="p-4">Comment</th>
               <th className="p-4">Status</th>
               <th className="p-4">Date</th>
@@ -413,7 +206,7 @@ function FeedbackManager() {
                   </div>
                 </td>
                 <td className="p-4">
-                  <div className="font-medium">{f.productName || f.productId?.name || 'N/A'}</div>
+                  <div className="font-medium">{f.productId?.name || 'N/A'}</div>
                   <div className="text-sm text-gray-500">{f.productId?.category || ''}</div>
                 </td>
                 <td className="p-4">
@@ -421,18 +214,6 @@ function FeedbackManager() {
                     {renderStars(f.rating)}
                     <span className="ml-2 text-sm text-gray-600">({f.rating})</span>
                   </div>
-                </td>
-                <td className="p-4">
-                  {f.emojiReaction ? (
-                    <div className="flex items-center space-x-2">
-                      <span className="text-2xl">{f.emojiReaction}</span>
-                      <span className="text-sm text-gray-600 capitalize">
-                        {f.mood || 'Unknown'}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 text-sm">No mood</span>
-                  )}
                 </td>
                 <td className="p-4 max-w-xs">
                   <div className="truncate" title={f.comment}>
@@ -510,7 +291,7 @@ function FeedbackManager() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
         {/* Rating Distribution */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold text-[#7B3F00] mb-4">Rating Distribution</h2>
@@ -524,166 +305,27 @@ function FeedbackManager() {
           </ResponsiveContainer>
         </div>
 
-        {/* Emoji Reaction Chart */}
+        {/* Status Distribution */}
         <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold text-[#7B3F00] mb-4">😊 Customer Mood Reactions</h2>
+          <h2 className="text-xl font-semibold text-[#7B3F00] mb-4">Status Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={emojiChartData}
+                data={statusChartData}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ mood, count, emoji }) => `${emoji} ${mood}: ${count}`}
+                label={({ status, count }) => `${status}: ${count}`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
               >
-                {emojiChartData.map((entry, index) => (
+                {statusChartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip />
             </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Mood Trend Pie Chart */}
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold text-[#7B3F00] mb-4">📊 Mood Trends Over Time</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={moodTrendPieData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ mood, count, emoji, percentage }) => 
-                  `${emoji} ${mood}\n${count} (${percentage}%)`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="count"
-              >
-                {moodTrendPieData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip 
-                formatter={(value, name, props) => [
-                  `${value} feedback${value > 1 ? 's' : ''}`,
-                  `${props.payload.emoji} ${props.payload.mood}`
-                ]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          
-          {/* Mood Statistics */}
-          <div className="mt-4 space-y-2">
-            <h3 className="text-sm font-semibold text-[#7B3F00]">Mood Statistics:</h3>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {moodTrendPieData.slice(0, 4).map((mood, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="flex items-center">
-                    <span className="mr-1">{mood.emoji}</span>
-                    <span className="truncate">{mood.mood}</span>
-                  </span>
-                  <span className="font-medium">{mood.percentage}%</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mood Trend Line Chart */}
-      <div className="mt-8">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold text-[#7B3F00] mb-4">📈 Mood Trends Over Time</h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={lineChartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12 }}
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis />
-              <Tooltip 
-                formatter={(value, name) => [
-                  `${value} feedback${value > 1 ? 's' : ''}`,
-                  name.charAt(0).toUpperCase() + name.slice(1)
-                ]}
-                labelFormatter={(label) => `Date: ${label}`}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="happy" 
-                stroke="#10B981" 
-                strokeWidth={3}
-                name="😊 Happy"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="excited" 
-                stroke="#F59E0B" 
-                strokeWidth={3}
-                name="🤩 Excited"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="satisfied" 
-                stroke="#059669" 
-                strokeWidth={3}
-                name="😌 Satisfied"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="neutral" 
-                stroke="#6B7280" 
-                strokeWidth={3}
-                name="😐 Neutral"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="disappointed" 
-                stroke="#3B82F6" 
-                strokeWidth={3}
-                name="😞 Disappointed"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="frustrated" 
-                stroke="#EF4444" 
-                strokeWidth={3}
-                name="😤 Frustrated"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="angry" 
-                stroke="#DC2626" 
-                strokeWidth={3}
-                name="😠 Angry"
-                dot={{ r: 6 }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="surprised" 
-                stroke="#8B5CF6" 
-                strokeWidth={3}
-                name="😲 Surprised"
-                dot={{ r: 6 }}
-              />
-            </LineChart>
           </ResponsiveContainer>
         </div>
       </div>

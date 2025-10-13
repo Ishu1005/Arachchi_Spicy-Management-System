@@ -8,10 +8,10 @@ import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import { MagnifyingGlassIcon, ArrowDownTrayIcon, MapPinIcon } from '@heroicons/react/24/solid';
 import {
-  SimpleBarChart,
-  SimplePieChart,
-  SimpleLineChart,
-  SummaryCards
+  BarChart,
+  PieChart,
+  LineChart,
+  SummaryCard
 } from '../components/SimpleCharts';
 
 function OrderManager() {
@@ -59,8 +59,6 @@ function OrderManager() {
 
   const fetchChartData = async () => {
     try {
-      console.log('Fetching chart data...');
-      
       const [
         salesBySpiceTypeRes,
         customerOrderFrequencyRes,
@@ -81,13 +79,6 @@ function OrderManager() {
         })
       ]);
 
-      console.log('Chart data received:', {
-        salesBySpiceType: salesBySpiceTypeRes.data,
-        customerOrderFrequency: customerOrderFrequencyRes.data,
-        monthlyOrderTrend: monthlyOrderTrendRes.data,
-        orderStatusDistribution: orderStatusDistributionRes.data
-      });
-
       setChartData({
         salesBySpiceType: salesBySpiceTypeRes.data,
         customerOrderFrequency: customerOrderFrequencyRes.data,
@@ -96,8 +87,7 @@ function OrderManager() {
       });
     } catch (err) {
       console.error('Error fetching chart data:', err);
-      console.error('Error details:', err.response?.data);
-      toast.error('Failed to load analytics data: ' + (err.response?.data?.error || err.message));
+      toast.error('Failed to load analytics data');
     }
   };
 
@@ -222,13 +212,13 @@ function OrderManager() {
             className="space-y-6"
           >
             {/* Summary Cards */}
-            <SummaryCards chartData={chartData} />
+            <SummaryCard title="Total Orders" value={orders.length} icon="📦" />
 
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Sales by Spice Type */}
               {chartData.salesBySpiceType && (
-                <SimplePieChart 
+                <PieChart 
                   data={chartData.salesBySpiceType} 
                   title="Total Sales by Spice Type" 
                 />
@@ -236,7 +226,7 @@ function OrderManager() {
 
               {/* Customer Order Frequency */}
               {chartData.customerOrderFrequency && (
-                <SimpleBarChart 
+                <BarChart 
                   data={chartData.customerOrderFrequency} 
                   title="Customer Order Frequency (Top 10)" 
                   color="#36A2EB"
@@ -245,7 +235,7 @@ function OrderManager() {
 
               {/* Monthly Order Trend */}
               {chartData.monthlyOrderTrend && (
-                <SimpleLineChart 
+                <LineChart 
                   data={chartData.monthlyOrderTrend} 
                   title="Monthly Order Trend" 
                 />
@@ -253,9 +243,9 @@ function OrderManager() {
 
               {/* Order Status Distribution */}
               {chartData.orderStatusDistribution && (
-                <SimplePieChart 
-                  data={chartData.orderStatusDistribution} 
-                  title="Order Status Distribution" 
+                <PieChart 
+                  data={chartData.orderStatusDistribution}
+                  title="Order Status Distribution"
                 />
               )}
             </div>

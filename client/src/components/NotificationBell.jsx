@@ -1,77 +1,200 @@
 import React, { useState, useEffect } from 'react';
+import { BellIcon } from '@heroicons/react/24/outline';
 import axios from 'axios';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BellIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [inventoryData, setInventoryData] = useState([]);
 
-  const fetchNotifications = async () => {
-    try {
-      const [notificationsRes, countRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/inventory/notifications/unread', {
-          withCredentials: true
-        }),
-        axios.get('http://localhost:5000/api/inventory/notifications/count', {
-          withCredentials: true
-        })
-      ]);
-      
-      setNotifications(notificationsRes.data);
-      setUnreadCount(countRes.data.count);
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-    }
-  };
-
-  const markAsRead = async (notificationId) => {
-    try {
-      await axios.put(`http://localhost:5000/api/inventory/notifications/${notificationId}/read`, {}, {
-        withCredentials: true
-      });
-      
-      // Update local state
-      setNotifications(prev => prev.filter(notif => notif._id !== notificationId));
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await axios.put('http://localhost:5000/api/inventory/notifications/read-all', {}, {
-        withCredentials: true
-      });
-      
-      setNotifications([]);
-      setUnreadCount(0);
-    } catch (err) {
-      console.error('Error marking all notifications as read:', err);
-    }
-  };
-
+  // Fetch inventory data and check for low stock
   useEffect(() => {
-    fetchNotifications();
+    const fetchInventoryAndCheckStock = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/inventory');
+        const inventory = response.data;
+        setInventoryData(inventory);
+        
+        // Check for low stock items
+        const lowStockItems = inventory.filter(item => item.quantity <= 10);
+        
+        if (lowStockItems.length > 0) {
+          const lowStockNotifications = lowStockItems.map(item => ({
+            id: `low-stock-${item._id}`,
+            title: "Low Stock Alert",
+            message: `${item.name} is running low (${item.quantity} units remaining)`,
+            time: "Just now",
+            read: false,
+            type: "inventory",
+            priority: "high"
+          }));
+          
+          setNotifications(prev => {
+            // Remove old low stock notifications for these items
+            const filtered = prev.filter(notif => 
+              !notif.id.startsWith('low-stock-') || 
+              lowStockItems.some(item => notif.id === `low-stock-${item._id}`)
+            );
+            
+            // Add new low stock notifications
+            const newNotifications = [...filtered];
+            lowStockNotifications.forEach(newNotif => {
+              if (!filtered.some(existing => existing.id === newNotif.id)) {
+                newNotifications.push(newNotif);
+              }
+            });
+            
+            return newNotifications;
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching inventory:', error);
+      }
+    };
+
+    // Initial fetch
+    fetchInventoryAndCheckStock();
     
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Set up interval to check every 30 seconds
+    const interval = setInterval(fetchInventoryAndCheckStock, 30000);
     
     return () => clearInterval(interval);
   }, []);
 
-  const formatTime = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now - date) / (1000 * 60));
+  // Sample notifications data with smart delivery features
+  useEffect(() => {
+    const sampleNotifications = [
+      {
+        id: 1,
+        title: "Smart Delivery Route Optimized",
+        message: "Delivery route for today has been optimized. 15% time saved!",
+        time: "2 minutes ago",
+        read: false,
+        type: "delivery",
+        priority: "medium"
+      },
+      {
+        id: 2,
+        title: "Delivery Completed",
+        message: "Order #12340 has been delivered successfully to Colombo 03",
+        time: "1 hour ago",
+        read: false,
+        type: "delivery",
+        priority: "low"
+      },
+      {
+        id: 3,
+        title: "Weather Alert",
+        message: "Heavy rain predicted. Consider rescheduling outdoor deliveries",
+        time: "3 hours ago",
+        read: true,
+        type: "weather",
+        priority: "high"
+      },
+      {
+        id: 4,
+        title: "New Customer Registration",
+        message: "Sarah Wilson has registered as a new customer",
+        time: "5 hours ago",
+        read: true,
+        type: "customer",
+        priority: "low"
+      },
+      {
+        id: 5,
+        title: "Smart Delivery Suggestion",
+        message: "Bulk order detected. Suggesting express delivery for better customer satisfaction",
+        time: "10 minutes ago",
+        read: false,
+        type: "delivery",
+        priority: "medium"
+      }
+    ];
     
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-    return date.toLocaleDateString();
+    setNotifications(prev => {
+      const existingIds = prev.map(n => n.id);
+      const newNotifications = sampleNotifications.filter(n => !existingIds.includes(n.id));
+      return [...prev, ...newNotifications];
+    });
+  }, []);
+
+  // Update unread count whenever notifications change
+  useEffect(() => {
+    setUnreadCount(notifications.filter(n => !n.read).length);
+  }, [notifications]);
+
+  const markAsRead = (id) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, read: true }
+          : notification
+      )
+    );
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  const markAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, read: true }))
+    );
+    setUnreadCount(0);
+  };
+
+  const getNotificationIcon = (type) => {
+    switch (type) {
+      case 'order':
+        return '📦';
+      case 'delivery':
+        return '🚚';
+      case 'inventory':
+        return '⚠️';
+      case 'customer':
+        return '👤';
+      case 'weather':
+        return '🌧️';
+      case 'smart':
+        return '🤖';
+      default:
+        return '🔔';
+    }
+  };
+
+  const getNotificationColor = (type, priority) => {
+    if (priority === 'high') {
+      return 'text-red-600';
+    }
+    
+    switch (type) {
+      case 'order':
+        return 'text-blue-600';
+      case 'delivery':
+        return 'text-green-600';
+      case 'inventory':
+        return 'text-orange-600';
+      case 'customer':
+        return 'text-purple-600';
+      case 'weather':
+        return 'text-blue-500';
+      case 'smart':
+        return 'text-indigo-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'high':
+        return <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2"></span>;
+      case 'medium':
+        return <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-2"></span>;
+      case 'low':
+        return <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -79,109 +202,93 @@ const NotificationBell = () => {
       {/* Bell Icon */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 text-[#7B3F00] hover:text-[#D6A77A] transition-colors duration-300"
+        className="relative p-2 text-gray-600 hover:text-[#7B3F00] transition-colors"
       >
         <BellIcon className="h-6 w-6" />
-        
-        {/* Notification Badge */}
         {unreadCount > 0 && (
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold"
-          >
-            {unreadCount > 99 ? '99+' : unreadCount}
-          </motion.div>
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
         )}
       </button>
 
-      {/* Notification Dropdown */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-xl border border-gray-200 z-50"
-          >
-            {/* Header */}
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-[#7B3F00]">
-                  Notifications
-                </h3>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Notifications List */}
-            <div className="max-h-96 overflow-y-auto">
-              {notifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  <BellIcon className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                  <p>No notifications</p>
-                </div>
-              ) : (
-                notifications.map((notification) => (
-                  <motion.div
-                    key={notification._id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center mb-1">
-                          <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-                          <h4 className="text-sm font-semibold text-gray-900">
-                            {notification.title}
-                          </h4>
-                        </div>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {notification.message}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {formatTime(notification.createdAt)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => markAsRead(notification._id)}
-                        className="ml-2 p-1 text-gray-400 hover:text-gray-600 transition-colors"
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                ))
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-[#7B3F00]">Notifications</h3>
+              {unreadCount > 0 && (
+                <button
+                  onClick={markAllAsRead}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Mark all as read
+                </button>
               )}
             </div>
+          </div>
 
-            {/* Footer */}
-            {notifications.length > 0 && (
-              <div className="p-3 border-t border-gray-200 bg-gray-50">
-                <p className="text-xs text-gray-500 text-center">
-                  {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-                </p>
+          {/* Notifications List */}
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-gray-500">
+                No notifications
               </div>
+            ) : (
+              notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  onClick={() => markAsRead(notification.id)}
+                  className={`p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
+                    !notification.read ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="text-lg">
+                      {getNotificationIcon(notification.type)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {getPriorityBadge(notification.priority)}
+                          <p className={`text-sm font-medium ${getNotificationColor(notification.type, notification.priority)}`}>
+                            {notification.title}
+                          </p>
+                        </div>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {notification.time}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))
             )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
 
-      {/* Click outside to close */}
+          {/* Footer */}
+          <div className="p-4 border-t border-gray-200">
+            <button className="w-full text-center text-sm text-[#7B3F00] hover:text-[#6A2C00]">
+              View all notifications
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => setIsOpen(false)}
-        />
+        ></div>
       )}
     </div>
   );

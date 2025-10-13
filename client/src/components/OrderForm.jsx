@@ -175,12 +175,9 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
             >
               {/* item name */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-                  Item Name
-                </label>
                 <input
                   name="name"
-                  placeholder="Enter item name"
+                  placeholder="Item name"
                   value={item.name}
                   onChange={(e) => handleItemChange(idx, e)}
                   className={`${baseInput} ${borderClass(`item-name-${idx}`)}`}
@@ -194,14 +191,11 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
               {/* quantity */}
               <div>
-                <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-                  Quantity
-                </label>
                 <input
                   name="quantity"
                   type="number"
                   min="1"
-                  placeholder="Enter quantity"
+                  placeholder="Qty"
                   value={item.quantity}
                   onChange={(e) => handleItemChange(idx, e)}
                   className={`${baseInput} ${borderClass(`item-quantity-${idx}`)}`}
@@ -215,12 +209,9 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
               {/* category */}
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-                  Category
-                </label>
                 <input
                   name="category"
-                  placeholder="Enter category"
+                  placeholder="Category"
                   value={item.category}
                   onChange={(e) => handleItemChange(idx, e)}
                   className={baseInput}
@@ -251,46 +242,30 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* payment & delivery */}
         <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-              Payment Method
-            </label>
-            <input
-              name="paymentMethod"
-              placeholder="Enter payment method"
-              value={form.paymentMethod}
-              onChange={handleChange}
-              className={`${baseInput} ${borderClass("paymentMethod")}`}
-            />
-            {errors.paymentMethod && (
-              <p className="text-red-600 text-xs mt-1">{errors.paymentMethod}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-              Delivery Method
-            </label>
-            <input
-              name="deliveryMethod"
-              placeholder="Enter delivery method"
-              value={form.deliveryMethod}
-              onChange={handleChange}
-              className={`${baseInput} ${borderClass("deliveryMethod")}`}
-            />
-            {errors.deliveryMethod && (
-              <p className="text-red-600 text-xs mt-1">{errors.deliveryMethod}</p>
-            )}
-          </div>
+          {[
+            { name: "paymentMethod", ph: "Payment method" },
+            { name: "deliveryMethod", ph: "Delivery method" }
+          ].map(({ name, ph }) => (
+            <div key={name}>
+              <input
+                name={name}
+                placeholder={ph}
+                value={form[name]}
+                onChange={handleChange}
+                className={`${baseInput} ${borderClass(name)}`}
+              />
+              {errors[name] && (
+                <p className="text-red-600 text-xs mt-1">{errors[name]}</p>
+              )}
+            </div>
+          ))}
         </div>
 
         {/* address */}
         <div>
-          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-            Delivery Address
-          </label>
           <textarea
             name="address"
-            placeholder="Enter complete delivery address"
+            placeholder="Delivery address"
             value={form.address}
             onChange={handleChange}
             className={`${baseInput} ${borderClass("address")} resize-none`}
@@ -303,28 +278,17 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* customer info */}
         <div className="grid gap-4 md:grid-cols-2">
+          <input
+            name="customerName"
+            placeholder="Customer name"
+            value={form.customerName}
+            onChange={handleChange}
+            className={`${baseInput} ${borderClass("customerName")}`}
+          />
           <div>
-            <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-              Customer Name
-            </label>
-            <input
-              name="customerName"
-              placeholder="Enter customer name"
-              value={form.customerName}
-              onChange={handleChange}
-              className={`${baseInput} ${borderClass("customerName")}`}
-            />
-            {errors.customerName && (
-              <p className="text-red-600 text-xs mt-1">{errors.customerName}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-[#7B3F00] mb-2">
-              Customer Contact
-            </label>
             <input
               name="customerContact"
-              placeholder="Enter customer contact number"
+              placeholder="Customer contact"
               value={form.customerContact}
               onChange={handleChange}
               className={`${baseInput} ${borderClass("customerContact")}`}

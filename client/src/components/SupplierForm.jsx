@@ -180,11 +180,8 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
     return "border-gray-300";
   };
 
-  const textInput = (name, placeholder, label, otherProps = {}) => (
+  const textInput = (name, placeholder, otherProps = {}) => (
     <div>
-      <label className="block text-sm font-medium text-[#7B3F00] mb-1">
-        {label}
-      </label>
       <input
         name={name}
         placeholder={placeholder}
@@ -209,30 +206,25 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
         onSubmit={handleSubmit}
         className="space-y-4 bg-amber-50 p-9 rounded-lg shadow-md border border-[#D6A77A] max-w-xl mx-auto"
       >
-        {textInput("name", "Enter supplier name", "Supplier Name")}
-        {textInput("companyName", "Enter company name", "Company Name")}
-        {textInput("contact", "Enter contact number", "Contact Number")}
-        {textInput("email", "Enter email address", "Email", { type: "email" })}
-        {textInput("address", "Enter complete address", "Address")}
+        {textInput("name", "Supplier Name")}
+        {textInput("companyName", "Company Name")}
+        {textInput("contact", "Contact Number")}
+        {textInput("email", "Email", { type: "email" })}
+        {textInput("address", "Address")}
 
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
-            Supply Categories:
-          </label>
-          <div className="flex gap-4 text-sm">
-            {["whole", "powder", "organic"].map((cat) => (
-              <label key={cat} className="flex items-center text-[#7B3F00]">
-                <input
-                  type="checkbox"
-                  value={cat}
-                  checked={form.supplyCategories.includes(cat)}
-                  onChange={handleChange}
-                  className="mr-2"
-                />
-                {cat}
-              </label>
-            ))}
-          </div>
+        <div className="flex gap-4 text-sm">
+          {["whole", "powder", "organic"].map((cat) => (
+            <label key={cat} className="flex items-center text-[#7B3F00]">
+              <input
+                type="checkbox"
+                value={cat}
+                checked={form.supplyCategories.includes(cat)}
+                onChange={handleChange}
+                className="mr-2"
+              />
+              {cat}
+            </label>
+          ))}
         </div>
 
         {/* Pricing Agreement */}
@@ -320,77 +312,65 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
         </div>
 
         {/* Status */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
-            Status:
+        <div className="flex gap-4 text-sm">
+          <label className="text-[#7B3F00]">
+            <input
+              type="radio"
+              name="isActive"
+              value="true"
+              checked={form.isActive === true}
+              onChange={handleChange}
+            />
+            Active
           </label>
-          <div className="flex gap-4 text-sm">
-            <label className="text-[#7B3F00]">
-              <input
-                type="radio"
-                name="isActive"
-                value="true"
-                checked={form.isActive === true}
-                onChange={handleChange}
-              />
-              Active
-            </label>
-            <label className="text-[#7B3F00]">
-              <input
-                type="radio"
-                name="isActive"
-                value="false"
-                checked={form.isActive === false}
-                onChange={handleChange}
-              />
-              Inactive
-            </label>
-          </div>
+          <label className="text-[#7B3F00]">
+            <input
+              type="radio"
+              name="isActive"
+              value="false"
+              checked={form.isActive === false}
+              onChange={handleChange}
+            />
+            Inactive
+          </label>
         </div>
 
         {/* Dates */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
-            Contract Period:
-          </label>
-          <div className="flex gap-4">
-            <div className="w-1/2">
-              <label className="block text-xs text-gray-600 mb-1">Start Date</label>
-              <input
-                type="date"
-                name="contractStart"
-                value={form.contractStart?.slice(0, 10)}
-                onChange={handleChange}
-                className={`p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 ${borderClass(
-                  "contractStart"
-                )}`}
-              />
-              {errors.contractStart && (
-                <p className="text-red-600 text-xs mt-1">
-                  {errors.contractStart}
-                </p>
-              )}
-            </div>
-            <div className="w-1/2">
-              <label className="block text-xs text-gray-600 mb-1">End Date</label>
-              <input
-                type="date"
-                name="contractEnd"
-                value={form.contractEnd?.slice(0, 10)}
-                onChange={handleChange}
-                className={`p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 ${borderClass(
-                  "contractEnd"
-                )}`}
-              />
-              {errors.contractEnd && (
-                <p className="text-red-600 text-xs mt-1">{errors.contractEnd}</p>
-              )}
-            </div>
+        <div className="flex gap-4">
+          <div className="w-1/2">
+            <input
+              type="date"
+              name="contractStart"
+              value={form.contractStart?.slice(0, 10)}
+              onChange={handleChange}
+              className={`p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 ${borderClass(
+                "contractStart"
+              )}`}
+            />
+            {errors.contractStart && (
+              <p className="text-red-600 text-xs mt-1">
+                {errors.contractStart}
+              </p>
+            )}
+          </div>
+          <div className="w-1/2">
+            <input
+              type="date"
+              name="contractEnd"
+              value={form.contractEnd?.slice(0, 10)}
+              onChange={handleChange}
+              className={`p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 ${borderClass(
+                "contractEnd"
+              )}`}
+            />
+            {errors.contractEnd && (
+              <p className="text-red-600 text-xs mt-1">{errors.contractEnd}</p>
+            )}
           </div>
         </div>
 
-        {textInput("gstNumber", "Enter GST/VAT number", "GST/VAT Number")}
-        {textInput("deliverySchedule", "Enter delivery schedule", "Delivery Schedule")}
+        {textInput("gstNumber", "GST/VAT Number")}
+        {textInput("deliverySchedule", "Delivery Schedule")}
 
         <button
           type="submit"

@@ -5,17 +5,16 @@ let orders = [
     _id: 1,
     items: [
       { name: 'Cinnamon', quantity: 2, category: 'Spices' },
-      { name: 'Cardamom', quantity: 1, category: 'Spices' },
-      { name: 'Black Pepper', quantity: 1, category: 'Spices' }
+      { name: 'Cardamom', quantity: 1, category: 'Spices' }
     ],
     paymentMethod: 'Cash on Delivery',
     deliveryMethod: 'Standard Delivery',
     address: '123 Main Street, Colombo 03, Sri Lanka',
     customerName: 'Kamal Perera',
     customerContact: '0712345678',
-    orderDate: '2024-01-15T10:00:00Z',
+    orderDate: new Date().toISOString(),
     orderTime: '14:30',
-    status: 'completed',
+    status: 'pending',
     createdBy: 'admin',
     createdAt: new Date().toISOString()
   },
@@ -23,15 +22,14 @@ let orders = [
     _id: 2,
     items: [
       { name: 'Pepper', quantity: 3, category: 'Spices' },
-      { name: 'Turmeric', quantity: 1, category: 'Spices' },
-      { name: 'Cumin', quantity: 2, category: 'Spices' }
+      { name: 'Turmeric', quantity: 1, category: 'Spices' }
     ],
     paymentMethod: 'Credit Card',
     deliveryMethod: 'Express Delivery',
     address: '456 Temple Road, Kandy, Central Province, Sri Lanka',
     customerName: 'Nimal Fernando',
     customerContact: '0779876543',
-    orderDate: '2024-01-16T14:30:00Z',
+    orderDate: new Date().toISOString(),
     orderTime: '10:15',
     status: 'processing',
     createdBy: 'admin',
@@ -48,69 +46,14 @@ let orders = [
     address: '789 Beach Road, Galle, Southern Province, Sri Lanka',
     customerName: 'Sunil Rajapaksha',
     customerContact: '0701122334',
-    orderDate: '2024-01-17T09:15:00Z',
+    orderDate: new Date().toISOString(),
     orderTime: '16:45',
     status: 'completed',
     createdBy: 'admin',
     createdAt: new Date().toISOString()
-  },
-  {
-    _id: 4,
-    items: [
-      { name: 'Cinnamon', quantity: 1, category: 'Spices' },
-      { name: 'Ginger', quantity: 3, category: 'Spices' }
-    ],
-    paymentMethod: 'Cash on Delivery',
-    deliveryMethod: 'Standard Delivery',
-    address: '321 Galle Road, Mount Lavinia, Sri Lanka',
-    customerName: 'Kamal Perera',
-    customerContact: '0712345678',
-    orderDate: '2024-01-18T11:20:00Z',
-    orderTime: '11:20',
-    status: 'pending',
-    createdBy: 'admin',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 5,
-    items: [
-      { name: 'Cardamom', quantity: 2, category: 'Spices' },
-      { name: 'Star Anise', quantity: 1, category: 'Spices' },
-      { name: 'Bay Leaves', quantity: 1, category: 'Spices' }
-    ],
-    paymentMethod: 'Credit Card',
-    deliveryMethod: 'Express Delivery',
-    address: '654 Negombo Road, Wattala, Sri Lanka',
-    customerName: 'Priya Silva',
-    customerContact: '0771234567',
-    orderDate: '2024-01-19T15:45:00Z',
-    orderTime: '15:45',
-    status: 'completed',
-    createdBy: 'admin',
-    createdAt: new Date().toISOString()
-  },
-  {
-    _id: 6,
-    items: [
-      { name: 'Turmeric', quantity: 2, category: 'Spices' },
-      { name: 'Coriander', quantity: 1, category: 'Spices' }
-    ],
-    paymentMethod: 'Bank Transfer',
-    deliveryMethod: 'Pickup Point',
-    address: '987 High Level Road, Nugegoda, Sri Lanka',
-    customerName: 'Ajith Kumar',
-    customerContact: '0709876543',
-    orderDate: '2024-01-20T08:30:00Z',
-    orderTime: '08:30',
-    status: 'processing',
-    createdBy: 'admin',
-    createdAt: new Date().toISOString()
   }
 ];
-let nextOrderId = 7;
-
-// Share orders data with analytics controller
-global.sharedOrders = orders;
+let nextOrderId = 4;
 
 exports.createOrder = async (req, res) => {
   try {
@@ -154,7 +97,6 @@ exports.createOrder = async (req, res) => {
     };
 
     orders.push(newOrder);
-    global.sharedOrders = orders; // Update shared data
     res.status(201).json(newOrder);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -195,7 +137,6 @@ exports.updateOrder = async (req, res) => {
     }
 
     orders[orderIndex] = { ...order, ...req.body };
-    global.sharedOrders = orders; // Update shared data
     res.json(orders[orderIndex]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -219,7 +160,6 @@ exports.deleteOrder = async (req, res) => {
     }
 
     orders.splice(orderIndex, 1);
-    global.sharedOrders = orders; // Update shared data
     res.json({ msg: 'Order deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });

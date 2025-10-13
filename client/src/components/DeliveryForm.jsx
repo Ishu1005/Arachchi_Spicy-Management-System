@@ -1,329 +1,412 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { motion } from 'framer-motion';
-import { 
-  TruckIcon, 
-  MapPinIcon, 
-  ClockIcon, 
-  UserIcon,
-  PhoneIcon,
-  CreditCardIcon,
-  BanknotesIcon,
-  BuildingStorefrontIcon,
-  TruckIcon as CourierIcon,
-  BoltIcon
-} from '@heroicons/react/24/solid';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-function DeliveryForm({ fetchDeliveries, editing, setEditing }) {
-  const [form, setForm] = useState({
-    orderId: '',
-    deliveryAddress: '',
-    agentName: '',
-    agentPhone: '',
-    driverCode: '',
-    deliveryMethod: '',
-    description: '',
-    estimatedTime: '',
-    deliveryCharge: 0,
-    trackingAvailable: false
-  });
-  
-  const [errors, setErrors] = useState({});
-  const [orders, setOrders] = useState([]);
-  const [drivers, setDrivers] = useState([]);
-  const [showDriverCodes, setShowDriverCodes] = useState(false);
-
-  // Sample driver data with codes
-  const driverData = [
-    { code: 'DRV001', name: 'Kamal Perera', phone: '0771234567', status: 'available' },
-    { code: 'DRV002', name: 'Nimal Silva', phone: '0772345678', status: 'available' },
-    { code: 'DRV003', name: 'Sunil Fernando', phone: '0773456789', status: 'busy' },
-    { code: 'DRV004', name: 'Ajith Kumara', phone: '0774567890', status: 'available' },
-    { code: 'DRV005', name: 'Priyantha Rajapaksa', phone: '0775678901', status: 'available' }
-  ];
-
-  // Delivery methods with detailed information
-  const deliveryMethods = [
-    {
-      id: 'standard',
-      name: 'Standard Delivery',
-      icon: TruckIcon,
-      description: 'Normal home delivery island-wide',
-      eta: '1-3 days',
-      charge: 300,
-      features: ['Fixed delivery charge', 'Tracking available', 'COD support'],
-      suitableFor: 'Regular customers / standard spice orders',
-      color: 'blue'
+function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
+  const INITIAL_FORM = {
+    orderId: "",
+    customerName: "",
+    customerEmail: "",
+    customerPhone: "",
+    deliveryAddress: "",
+    deliveryCity: "",
+    deliveryState: "",
+    deliveryZipCode: "",
+    deliveryDate: "",
+    status: "pending",
+    deliveryNotes: "",
+    deliveryPerson: "",
+    estimatedDeliveryTime: "",
+    
+    // Enhanced Order Information
+    orderInfo: {
+      orderDate: "",
+      productsList: [],
+      totalAmount: 0,
+      paymentStatus: "pending", // Paid / COD / Pending
+      orderNumber: ""
     },
-    {
-      id: 'express',
-      name: 'Express Delivery',
-      icon: BoltIcon,
-      description: 'Same day delivery for urban areas',
-      eta: '4-6 hours',
-      charge: 600,
-      features: ['Real-time tracking', 'Live ETA', 'Auto notifications'],
-      suitableFor: 'Urgent orders, bulk buyers, restaurants',
-      color: 'green'
+    
+    // Enhanced Delivery Address
+    addressDetails: {
+      street: "",
+      city: "",
+      postalCode: "",
+      district: "",
+      province: "",
+      coordinates: {
+        latitude: "",
+        longitude: ""
+      },
+      specialNotes: ""
     },
-    {
-      id: 'pickup',
-      name: 'Store Pickup',
-      icon: BuildingStorefrontIcon,
-      description: 'Customer collects from nearest branch',
-      eta: 'Immediate',
+    
+    // Delivery Agent Details
+    agentDetails: {
+      driverSelection: "",
+      agentId: "",
+      agentName: "",
+      agentPhone: "",
+      contactNumber: "",
+      vehicleNumber: "",
+      assignedDateTime: "",
+      deliveryStatus: "assigned" // Assigned / In Progress / Delivered / Cancelled
+    },
+    
+    // Delivery Time & Tracking
+    timeTracking: {
+      estimatedArrival: "",
+      actualDeliveryTime: "",
+      deliveryDistance: 0,
+      realTimeLocation: "",
+      aiPrediction: ""
+    },
+    
+    // Delivery Status & Notifications
+    statusTracking: {
+      currentStatus: "packing", // Packing / Dispatched / On the way / Delivered / Failed
+      notifications: []
+    },
+    
+    // Delivery Method
+    deliveryMethod: {
+      type: "standard", // standard / express / pickup / courier / eco
+      description: "",
       charge: 0,
-      features: ['No delivery charge', 'QR code verification', 'SMS confirmation'],
-      suitableFor: 'Local customers, near-branch pickups',
-      color: 'purple'
+      estimatedTime: "",
+      features: []
     },
-    {
-      id: 'courier',
-      name: 'Third-Party Courier',
-      icon: CourierIcon,
-      description: 'External courier service delivery',
-      eta: '2-5 days',
-      charge: 'Variable',
-      features: ['Auto tracking number', 'API integration', 'Weight-based pricing'],
-      suitableFor: 'Island-wide / international orders',
-      color: 'orange'
-    },
-    {
-      id: 'eco',
-      name: 'Eco-Friendly Delivery',
-      icon: TruckIcon,
-      description: 'Bicycle/Electric scooter delivery',
-      eta: '30-60 min',
-      charge: 150,
-      features: ['No fuel cost', 'Eco-friendly', 'Short distance only'],
-      suitableFor: 'Green initiative / city-based customers',
-      color: 'emerald'
+    
+    smartDelivery: {
+      routeOptimized: false,
+      weatherChecked: false,
+      trafficConsidered: false,
+      bulkOrderDetected: false,
+      expressDeliverySuggested: false
     }
-  ];
+  };
 
-  // Fetch orders for selection
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const res = await axios.get('http://localhost:5000/api/orders', {
-          withCredentials: true
-        });
-        setOrders(res.data);
-      } catch (err) {
-        console.error('Error fetching orders:', err);
-      }
-    };
-    fetchOrders();
-  }, []);
+  const [form, setForm] = useState(INITIAL_FORM);
+  const [errors, setErrors] = useState({});
+  const [smartFeatures, setSmartFeatures] = useState({
+    routeOptimization: false,
+    weatherAlert: false,
+    trafficUpdate: false,
+    bulkOrderSuggestion: false
+  });
 
-  // Set drivers data
-  useEffect(() => {
-    setDrivers(driverData);
-  }, []);
+  // Delivery Methods Configuration
+  const deliveryMethods = {
+    standard: {
+      name: "Standard Home Delivery",
+      description: "Once the customer confirms the order, a company delivery driver brings it directly to their home.",
+      charge: 300,
+      estimatedTime: "1–3 days",
+      features: [
+        "Fixed delivery charge (Rs. 300 island-wide)",
+        "Estimated delivery time: 1–3 days",
+        "Tracking available: On the way → Delivered",
+        "COD (Cash on Delivery) support"
+      ],
+      bestFor: "Regular customers and standard spice orders",
+      icon: "📦"
+    },
+    express: {
+      name: "Express Delivery (Same-Day Delivery)",
+      description: "High-priority delivery for urban areas like Colombo, Galle, Kandy — same-day delivery guaranteed.",
+      charge: 600,
+      estimatedTime: "4–6 hours",
+      features: [
+        "Higher delivery charge (Rs. 600)",
+        "Estimated delivery time: 4–6 hours",
+        "Real-time tracking & live ETA",
+        "Auto notifications: 'Your express delivery is on the way!'"
+      ],
+      bestFor: "Urgent orders, bulk buyers, restaurants",
+      icon: "⚡"
+    },
+    pickup: {
+      name: "Pickup Point / Store Pickup",
+      description: "Customers place the order online and collect it from their nearest branch.",
+      charge: 0,
+      estimatedTime: "Immediate",
+      features: [
+        "No delivery charge",
+        "Pickup confirmation via SMS/Email",
+        "QR code-based pickup verification"
+      ],
+      bestFor: "Local customers near branch locations",
+      icon: "🏪"
+    },
+    courier: {
+      name: "Third-Party Courier Delivery",
+      description: "Orders are delivered using external courier companies (e.g., Domex, Pronto, Speedee).",
+      charge: 400,
+      estimatedTime: "2–5 days",
+      features: [
+        "Courier tracking number auto-generated",
+        "ETA updates via integrated API",
+        "Delivery charges auto-calculated based on weight & distance"
+      ],
+      bestFor: "Island-wide or international deliveries",
+      icon: "📦"
+    },
+    eco: {
+      name: "Eco-Friendly / Bicycle Delivery",
+      description: "Short-distance deliveries (within 5 km) handled by eco-delivery riders using bicycles or electric scooters.",
+      charge: 200,
+      estimatedTime: "30–60 minutes",
+      features: [
+        "No fuel cost → eco-friendly",
+        "Estimated delivery time: 30–60 minutes",
+        "Ideal for small spice packs"
+      ],
+      bestFor: "Customers wanting fast, sustainable deliveries",
+      icon: "🚴‍♂️"
+    }
+  };
 
-  // Sync form when editing
   useEffect(() => {
     if (editing) {
-      setForm(editing);
+      setForm({ ...editing });
+      setErrors({});
     } else {
-      setForm({
-        orderId: '',
-        deliveryAddress: '',
-        agentName: '',
-        agentPhone: '',
-        driverCode: '',
-        deliveryMethod: '',
-        description: '',
-        estimatedTime: '',
-        deliveryCharge: 0,
-        trackingAvailable: false
-      });
+      setForm(INITIAL_FORM);
+      setErrors({});
     }
-    setErrors({});
   }, [editing]);
 
-  // Phone number validation
-  const validatePhone = (phone) => {
-    const phoneRegex = /^[0-9]{10}$/;
-    if (!phone) return 'Phone number is required';
-    if (!phoneRegex.test(phone)) return 'Phone number must be exactly 10 digits';
-    return '';
-  };
-
-  // Form validation
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!form.orderId) newErrors.orderId = 'Please select an order';
-    if (!form.deliveryAddress.trim()) newErrors.deliveryAddress = 'Delivery address is required';
-    if (!form.agentName.trim()) newErrors.agentName = 'Agent name is required';
-    
-    const phoneError = validatePhone(form.agentPhone);
-    if (phoneError) newErrors.agentPhone = phoneError;
-    
-    if (!form.driverCode) newErrors.driverCode = 'Please select a driver';
-    if (!form.deliveryMethod) newErrors.deliveryMethod = 'Please select a delivery method';
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Handle form changes
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    
-    setForm(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
-
-    // Clear error when field is being edited
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-
-    // Auto-update delivery method details
-    if (name === 'deliveryMethod') {
-      const method = deliveryMethods.find(m => m.id === value);
-      if (method) {
-        setForm(prev => ({
-          ...prev,
-          estimatedTime: method.eta,
-          deliveryCharge: method.charge,
-          trackingAvailable: method.id !== 'pickup',
-          description: method.description
-        }));
+  // Smart delivery analysis when order is selected
+  useEffect(() => {
+    if (form.orderId) {
+      const selectedOrder = orders.find(order => order._id === form.orderId);
+      if (selectedOrder) {
+        analyzeOrderForSmartDelivery(selectedOrder);
       }
     }
+  }, [form.orderId, orders]);
+
+  const analyzeOrderForSmartDelivery = (order) => {
+    const smartAnalysis = {
+      routeOptimization: false,
+      weatherAlert: false,
+      trafficUpdate: false,
+      bulkOrderSuggestion: false
+    };
+
+    // Populate order information
+    const orderInfo = {
+      orderDate: order.createdAt || new Date().toISOString(),
+      productsList: order.items || [],
+      totalAmount: order.totalAmount || 0,
+      paymentStatus: order.paymentStatus || "pending",
+      orderNumber: order.orderNumber || `ORD-${Date.now()}`
+    };
+
+    // Check if it's a bulk order (quantity > 10)
+    const totalQuantity = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+    if (totalQuantity > 10) {
+      smartAnalysis.bulkOrderSuggestion = true;
+      toast.info("🤖 Bulk order detected! Consider express delivery for better customer satisfaction.", {
+        autoClose: 5000
+      });
+    }
+
+    // Check delivery city for route optimization
+    if (form.deliveryCity) {
+      const majorCities = ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Anuradhapura'];
+      if (majorCities.includes(form.deliveryCity)) {
+        smartAnalysis.routeOptimization = true;
+        toast.success("🚚 Route optimization available for this city!", {
+          autoClose: 3000
+        });
+      }
+    }
+
+    // Simulate weather check (in real app, this would call a weather API)
+    const weatherConditions = ['sunny', 'rainy', 'stormy'];
+    const randomWeather = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
+    
+    if (randomWeather === 'rainy' || randomWeather === 'stormy') {
+      smartAnalysis.weatherAlert = true;
+      toast.warning(`🌧️ Weather Alert: ${randomWeather} conditions predicted. Consider rescheduling outdoor deliveries.`, {
+        autoClose: 6000
+      });
+    }
+
+    // Traffic update simulation
+    const trafficLevels = ['low', 'medium', 'high'];
+    const randomTraffic = trafficLevels[Math.floor(Math.random() * trafficLevels.length)];
+    
+    if (randomTraffic === 'high') {
+      smartAnalysis.trafficUpdate = true;
+      toast.info(`🚦 Traffic Alert: High traffic detected. Estimated delivery time may increase by 30 minutes.`, {
+        autoClose: 4000
+      });
+    }
+
+    setSmartFeatures(smartAnalysis);
+    
+    // Update form with smart delivery data and order info
+    setForm(prev => ({
+      ...prev,
+      orderInfo: orderInfo,
+      smartDelivery: {
+        routeOptimized: smartAnalysis.routeOptimization,
+        weatherChecked: smartAnalysis.weatherAlert,
+        trafficConsidered: smartAnalysis.trafficUpdate,
+        bulkOrderDetected: smartAnalysis.bulkOrderSuggestion,
+        expressDeliverySuggested: smartAnalysis.bulkOrderSuggestion
+      }
+    }));
+  };
+
+  // Validation per field
+  const validateField = (name, value) => {
+    switch (name) {
+      case "orderId":
+        return value ? "" : "Order selection is required";
+      case "customerName":
+        return value.trim() ? "" : "Customer name is required";
+      case "customerEmail":
+        if (value === "") return "Customer email is required";
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Invalid email format";
+      case "customerPhone":
+        return value.trim() ? "" : "Customer phone is required";
+      case "deliveryAddress":
+        return value.trim() ? "" : "Delivery address is required";
+      case "deliveryCity":
+        return value.trim() ? "" : "Delivery city is required";
+      case "deliveryState":
+        return value.trim() ? "" : "Delivery state is required";
+      case "deliveryZipCode":
+        return value.trim() ? "" : "Delivery zip code is required";
+      case "deliveryDate":
+        if (!value) return "Delivery date is required";
+        const selectedDate = new Date(value);
+        const now = new Date();
+        if (selectedDate <= now) return "Delivery date must be in the future";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  // Validate entire form
+  const validateForm = () => {
+    const nextErrors = {};
+    Object.entries(form).forEach(([key, val]) => {
+      const err = validateField(key, val);
+      if (err) nextErrors[key] = err;
+    });
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+
+    // Live validation on field change
+    setErrors((prev) => ({
+      ...prev,
+      [name]: validateField(name, value),
+    }));
   };
 
   // Handle driver selection
-  const handleDriverSelect = (driver) => {
+  const handleDriverSelection = (e) => {
+    const { value } = e.target;
+    const driverData = {
+      driver1: { agentName: "Nimal Perera", agentPhone: "0771234567", vehicleNumber: "ABC-1234" },
+      driver2: { agentName: "Sunil Jayawardena", agentPhone: "0719876543", vehicleNumber: "XYZ-5678" },
+      driver3: { agentName: "Kamal Fernando", agentPhone: "0723456789", vehicleNumber: "DEF-4321" },
+      driver4: { agentName: "Priya Silva", agentPhone: "0708765432", vehicleNumber: "GHI-8765" },
+      driver5: { agentName: "Roshan De Silva", agentPhone: "0752345678", vehicleNumber: "JKL-6543" }
+    };
+
+    const selectedDriver = driverData[value] || {};
+    
     setForm(prev => ({
       ...prev,
-      driverCode: driver.code,
-      agentName: driver.name,
-      agentPhone: driver.phone
+      agentDetails: {
+        ...prev.agentDetails,
+        driverSelection: value,
+        agentName: selectedDriver.agentName || "",
+        agentPhone: selectedDriver.agentPhone || "",
+        vehicleNumber: selectedDriver.vehicleNumber || ""
+      }
     }));
-    setShowDriverCodes(false);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error('Please correct the form errors');
+
+    const isValid = validateForm();
+
+    if (!isValid) {
+      const allErrors = Object.values(errors).filter(Boolean).join("\n");
+      toast.error(allErrors || "Please fix the errors before submitting", {
+        autoClose: 4000,
+      });
       return;
     }
 
     try {
-      // Map form fields to backend API format
-      const deliveryData = {
-        orderId: form.orderId,
-        customerName: form.agentName,
-        customerEmail: 'customer@example.com', // Default email - should be fetched from order
-        customerPhone: form.agentPhone,
-        deliveryAddress: form.deliveryAddress,
-        deliveryCity: 'Colombo', // Default city - should be extracted from address
-        deliveryState: 'Western', // Default state - should be extracted from address
-        deliveryZipCode: '10000', // Default zip - should be extracted from address
-        deliveryDate: new Date().toISOString(),
-        deliveryNotes: form.description,
-        deliveryPerson: form.agentName,
-        estimatedDeliveryTime: form.estimatedTime,
-        // Additional fields for frontend compatibility
-        address: form.deliveryAddress,
-        agentName: form.agentName,
-        agentPhone: form.agentPhone,
-        driverCode: form.driverCode,
-        deliveryMethod: form.deliveryMethod,
-        description: form.description,
-        estimatedTime: form.estimatedTime,
-        deliveryCharge: form.deliveryCharge,
-        trackingAvailable: form.trackingAvailable,
-        status: editing ? editing.status : 'pending'
-      };
-
       if (editing) {
-        await axios.put(`http://localhost:5000/api/delivery/${editing._id}`, deliveryData, {
-          withCredentials: true
-        });
-        toast.success('Delivery updated successfully!');
+        await axios.put(
+          `http://localhost:5000/api/delivery/${editing._id}`,
+          form
+        );
+        toast.success("Delivery updated successfully!");
         setEditing(null);
       } else {
-        await axios.post('http://localhost:5000/api/delivery', deliveryData, {
-          withCredentials: true
-        });
-        toast.success('Smart delivery created successfully!');
+        await axios.post("http://localhost:5000/api/delivery", form);
+        toast.success("Delivery added successfully!");
       }
-
-      fetchDeliveries();
-      setForm({
-        orderId: '',
-        deliveryAddress: '',
-        agentName: '',
-        agentPhone: '',
-        driverCode: '',
-        deliveryMethod: '',
-        description: '',
-        estimatedTime: '',
-        deliveryCharge: 0,
-        trackingAvailable: false
-      });
+      setForm(INITIAL_FORM);
+      setErrors({});
+      fetchDelivery();
     } catch (err) {
-      console.error('Error submitting delivery:', err.response?.data || err.message);
-      toast.error(err.response?.data?.error || 'Failed to create delivery');
+      console.error(err);
+      toast.error("Failed to save delivery. Please try again!");
     }
   };
 
-  const slideVariant = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-  };
-
-  const getColorClasses = (color) => {
-    const colors = {
-      blue: 'border-blue-200 bg-blue-50 text-blue-800',
-      green: 'border-green-200 bg-green-50 text-green-800',
-      purple: 'border-purple-200 bg-purple-50 text-purple-800',
-      orange: 'border-orange-200 bg-orange-50 text-orange-800',
-      emerald: 'border-emerald-200 bg-emerald-50 text-emerald-800'
-    };
-    return colors[color] || colors.blue;
+  // Border colors for inputs
+  const borderClass = (field) => {
+    if (errors[field]) return "border-red-500";
+    if (form[field] && !errors[field]) return "border-green-500";
+    return "border-amber-300";
   };
 
   return (
-    <motion.form
-      onSubmit={handleSubmit}
-      variants={slideVariant}
-      initial="hidden"
-      animate="visible"
-      className="max-w-4xl mx-auto p-8 bg-white border border-[#D6A77A] rounded-2xl shadow-xl space-y-6"
-    >
-      {/* Title */}
-      <h2 className="text-3xl font-bold text-center text-[#7B3F00] lowercase">
-        {editing ? "update smart delivery" : "create smart delivery"}
-      </h2>
+    <>
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 p-8 bg-white shadow-lg rounded-xl border border-amber-200 mx-auto max-w-2xl"
+      >
+        <h2 className="text-2xl font-bold text-center text-[#7B3F00]">
+          {editing ? "Edit Delivery" : "Add New Delivery"}
+        </h2>
 
-      {/* Order Selection */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-[#7B3F00]">📦 Order Selection</h3>
+        {/* Order Selection */}
         <div>
-          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Select Order</label>
           <select
             name="orderId"
             value={form.orderId}
             onChange={handleChange}
-            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] ${
-              errors.orderId ? 'border-red-500' : 'border-[#D6A77A]'
-            }`}
+            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+              "orderId"
+            )}`}
           >
-            <option value="">Choose an order...</option>
+            <option value="">Select Order</option>
             {orders.map(order => (
               <option key={order._id} value={order._id}>
-                Order #{order._id} - {order.customerName || 'Guest'} ({order.items?.length || 0} items)
+                Order #{order.orderNumber} - ${order.totalAmount}
               </option>
             ))}
           </select>
@@ -331,228 +414,574 @@ function DeliveryForm({ fetchDeliveries, editing, setEditing }) {
             <p className="text-red-600 text-xs mt-1">{errors.orderId}</p>
           )}
         </div>
-      </div>
 
-      {/* Delivery Address */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-[#7B3F00]">📍 Delivery Address</h3>
-        <div>
-          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Address</label>
-          <textarea
-            name="deliveryAddress"
-            value={form.deliveryAddress}
-            onChange={handleChange}
-            placeholder="Enter complete delivery address..."
-            rows={3}
-            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] resize-none ${
-              errors.deliveryAddress ? 'border-red-500' : 'border-[#D6A77A]'
-            }`}
-          />
-          {errors.deliveryAddress && (
-            <p className="text-red-600 text-xs mt-1">{errors.deliveryAddress}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Agent Details */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-[#7B3F00]">👤 Agent Details</h3>
-        
-        {/* Driver Selection */}
-        <div>
-          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Driver Selection</label>
-          <div className="relative">
-            <input
-              type="text"
-              value={form.driverCode ? `${form.driverCode} - ${form.agentName}` : ''}
-              onChange={() => {}}
-              placeholder="Click to select driver..."
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] cursor-pointer ${
-                errors.driverCode ? 'border-red-500' : 'border-[#D6A77A]'
-              }`}
-              onClick={() => setShowDriverCodes(!showDriverCodes)}
-            />
-            <UserIcon className="absolute right-3 top-3 h-5 w-5 text-[#D6A77A]" />
+        {/* Order Information Section */}
+        {form.orderId && form.orderInfo.orderNumber && (
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 p-6 rounded-lg border border-amber-200">
+            <div className="flex items-center mb-4">
+              <span className="text-2xl mr-2">📋</span>
+              <h3 className="text-lg font-semibold text-amber-700">Order Information</h3>
+            </div>
             
-            {showDriverCodes && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-[#D6A77A] rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
-                {drivers.map(driver => (
-                  <button
-                    key={driver.code}
-                    type="button"
-                    onClick={() => handleDriverSelect(driver)}
-                    disabled={driver.status === 'busy'}
-                    className={`w-full text-left p-3 hover:bg-gray-50 border-b border-gray-100 ${
-                      driver.status === 'busy' ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <div className="font-medium">{driver.code} - {driver.name}</div>
-                        <div className="text-sm text-gray-600">{driver.phone}</div>
-                      </div>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        driver.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {driver.status}
-                      </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-600">Order ID:</span>
+                  <span className="text-sm font-semibold text-amber-700">{form.orderInfo.orderNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-600">Order Date:</span>
+                  <span className="text-sm text-gray-800">{new Date(form.orderInfo.orderDate).toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-600">Total Amount:</span>
+                  <span className="text-sm font-semibold text-green-600">Rs. {form.orderInfo.totalAmount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-gray-600">Payment Status:</span>
+                  <span className={`text-sm px-2 py-1 rounded-full ${
+                    form.orderInfo.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' :
+                    form.orderInfo.paymentStatus === 'cod' ? 'bg-blue-100 text-blue-800' :
+                    'bg-yellow-100 text-yellow-800'
+                  }`}>
+                    {form.orderInfo.paymentStatus.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-sm font-medium text-gray-600 mb-2">Ordered Products:</h4>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                  {form.orderInfo.productsList.map((item, index) => (
+                    <div key={index} className="flex justify-between text-xs bg-white p-2 rounded border">
+                      <span>{item.name || item.productName}</span>
+                      <span className="text-gray-600">Qty: {item.quantity}</span>
                     </div>
-                  </button>
-                ))}
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Smart Delivery Status */}
+        {form.orderId && (
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+            <div className="flex items-center mb-3">
+              <span className="text-2xl mr-2">🤖</span>
+              <h3 className="text-lg font-semibold text-indigo-700">Smart Delivery Analysis</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className={`p-3 rounded-lg ${smartFeatures.routeOptimization ? 'bg-green-100 border border-green-300' : 'bg-gray-100'}`}>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🚚</span>
+                  <div>
+                    <p className="text-sm font-medium">Route Optimization</p>
+                    <p className="text-xs text-gray-600">
+                      {smartFeatures.routeOptimization ? 'Available' : 'Not available'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-3 rounded-lg ${smartFeatures.weatherAlert ? 'bg-yellow-100 border border-yellow-300' : 'bg-gray-100'}`}>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🌧️</span>
+                  <div>
+                    <p className="text-sm font-medium">Weather Check</p>
+                    <p className="text-xs text-gray-600">
+                      {smartFeatures.weatherAlert ? 'Alert detected' : 'Clear conditions'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-3 rounded-lg ${smartFeatures.trafficUpdate ? 'bg-orange-100 border border-orange-300' : 'bg-gray-100'}`}>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">🚦</span>
+                  <div>
+                    <p className="text-sm font-medium">Traffic Status</p>
+                    <p className="text-xs text-gray-600">
+                      {smartFeatures.trafficUpdate ? 'High traffic' : 'Normal traffic'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className={`p-3 rounded-lg ${smartFeatures.bulkOrderSuggestion ? 'bg-purple-100 border border-purple-300' : 'bg-gray-100'}`}>
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">📦</span>
+                  <div>
+                    <p className="text-sm font-medium">Order Type</p>
+                    <p className="text-xs text-gray-600">
+                      {smartFeatures.bulkOrderSuggestion ? 'Bulk order detected' : 'Standard order'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {smartFeatures.bulkOrderSuggestion && (
+              <div className="mt-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center">
+                  <span className="text-lg mr-2">💡</span>
+                  <p className="text-sm text-purple-700">
+                    <strong>Suggestion:</strong> Consider express delivery for better customer satisfaction
+                  </p>
+                </div>
               </div>
             )}
           </div>
-          {errors.driverCode && (
-            <p className="text-red-600 text-xs mt-1">{errors.driverCode}</p>
-          )}
-        </div>
+        )}
 
-        {/* Agent Name */}
+        {/* Customer Name */}
         <div>
-          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Agent Name</label>
           <input
-            type="text"
-            name="agentName"
-            value={form.agentName}
+            name="customerName"
+            placeholder="Customer Name"
+            value={form.customerName}
             onChange={handleChange}
-            placeholder="Agent name"
-            className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] ${
-              errors.agentName ? 'border-red-500' : 'border-[#D6A77A]'
-            }`}
+            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+              "customerName"
+            )}`}
           />
-          {errors.agentName && (
-            <p className="text-red-600 text-xs mt-1">{errors.agentName}</p>
+          {errors.customerName && (
+            <p className="text-red-600 text-xs mt-1">{errors.customerName}</p>
           )}
         </div>
 
-        {/* Agent Phone */}
+        {/* Customer Email */}
         <div>
-          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Agent Phone Number</label>
-          <div className="relative">
-            <input
-              type="tel"
-              name="agentPhone"
-              value={form.agentPhone}
-              onChange={handleChange}
-              placeholder="0771234567"
-              maxLength="10"
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] ${
-                errors.agentPhone ? 'border-red-500' : 'border-[#D6A77A]'
-              }`}
-            />
-            <PhoneIcon className="absolute right-3 top-3 h-5 w-5 text-[#D6A77A]" />
-          </div>
-          {errors.agentPhone && (
-            <p className="text-red-600 text-xs mt-1">{errors.agentPhone}</p>
+          <input
+            name="customerEmail"
+            type="email"
+            placeholder="Customer Email"
+            value={form.customerEmail}
+            onChange={handleChange}
+            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+              "customerEmail"
+            )}`}
+          />
+          {errors.customerEmail && (
+            <p className="text-red-600 text-xs mt-1">{errors.customerEmail}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">Must be exactly 10 digits (e.g., 0771234567)</p>
         </div>
-      </div>
 
-      {/* Delivery Method Selection */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold text-[#7B3F00]">🚚 Delivery Method</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {deliveryMethods.map(method => {
-            const IconComponent = method.icon;
-            const isSelected = form.deliveryMethod === method.id;
-            
-            return (
-              <div
-                key={method.id}
-                className={`border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 ${
-                  isSelected 
-                    ? `${getColorClasses(method.color)} border-opacity-100` 
-                    : 'border-gray-200 hover:border-[#D6A77A]'
-                }`}
-                onClick={() => handleChange({ target: { name: 'deliveryMethod', value: method.id } })}
+        {/* Customer Phone */}
+        <div>
+          <input
+            name="customerPhone"
+            placeholder="Customer Phone"
+            value={form.customerPhone}
+            onChange={handleChange}
+            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+              "customerPhone"
+            )}`}
+          />
+          {errors.customerPhone && (
+            <p className="text-red-600 text-xs mt-1">{errors.customerPhone}</p>
+          )}
+        </div>
+
+        {/* Enhanced Delivery Address Section */}
+        <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
+          <div className="flex items-center mb-4">
+            <span className="text-2xl mr-2">📍</span>
+            <h3 className="text-lg font-semibold text-green-700">Delivery Address Details</h3>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Street Address */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Street Address</label>
+              <textarea
+                name="deliveryAddress"
+                placeholder="Enter complete delivery address..."
+                value={form.deliveryAddress}
+                onChange={handleChange}
+                rows="3"
+                className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
+                  "deliveryAddress"
+                )}`}
+              />
+              {errors.deliveryAddress && (
+                <p className="text-red-600 text-xs mt-1">{errors.deliveryAddress}</p>
+              )}
+            </div>
+
+            {/* City, District, Province Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <input
+                  name="deliveryCity"
+                  placeholder="City"
+                  value={form.deliveryCity}
+                  onChange={handleChange}
+                  className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
+                    "deliveryCity"
+                  )}`}
+                />
+                {errors.deliveryCity && (
+                  <p className="text-red-600 text-xs mt-1">{errors.deliveryCity}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">District</label>
+                <select
+                  name="deliveryState"
+                  value={form.deliveryState}
+                  onChange={handleChange}
+                  className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
+                    "deliveryState"
+                  )}`}
+                >
+                  <option value="">Select District</option>
+                  <option value="Colombo">Colombo</option>
+                  <option value="Gampaha">Gampaha</option>
+                  <option value="Kalutara">Kalutara</option>
+                  <option value="Kandy">Kandy</option>
+                  <option value="Matale">Matale</option>
+                  <option value="Nuwara Eliya">Nuwara Eliya</option>
+                  <option value="Galle">Galle</option>
+                  <option value="Matara">Matara</option>
+                  <option value="Hambantota">Hambantota</option>
+                  <option value="Jaffna">Jaffna</option>
+                  <option value="Kilinochchi">Kilinochchi</option>
+                  <option value="Mannar">Mannar</option>
+                  <option value="Vavuniya">Vavuniya</option>
+                  <option value="Mullaitivu">Mullaitivu</option>
+                  <option value="Batticaloa">Batticaloa</option>
+                  <option value="Ampara">Ampara</option>
+                  <option value="Trincomalee">Trincomalee</option>
+                  <option value="Kurunegala">Kurunegala</option>
+                  <option value="Puttalam">Puttalam</option>
+                  <option value="Anuradhapura">Anuradhapura</option>
+                  <option value="Polonnaruwa">Polonnaruwa</option>
+                  <option value="Badulla">Badulla</option>
+                  <option value="Monaragala">Monaragala</option>
+                  <option value="Ratnapura">Ratnapura</option>
+                  <option value="Kegalle">Kegalle</option>
+                </select>
+                {errors.deliveryState && (
+                  <p className="text-red-600 text-xs mt-1">{errors.deliveryState}</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Postal Code</label>
+                <input
+                  name="deliveryZipCode"
+                  placeholder="Postal Code"
+                  value={form.deliveryZipCode}
+                  onChange={handleChange}
+                  className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
+                    "deliveryZipCode"
+                  )}`}
+                />
+                {errors.deliveryZipCode && (
+                  <p className="text-red-600 text-xs mt-1">{errors.deliveryZipCode}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Province */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Province</label>
+              <select
+                name="addressDetails.province"
+                value={form.addressDetails?.province || ""}
+                onChange={handleChange}
+                className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <div className="flex items-start space-x-3">
-                  <IconComponent className={`h-6 w-6 mt-1 ${
-                    isSelected ? 'text-current' : 'text-gray-400'
-                  }`} />
-                  <div className="flex-1">
-                    <h4 className={`font-semibold ${isSelected ? 'text-current' : 'text-gray-800'}`}>
-                      {method.name}
-                    </h4>
-                    <p className={`text-sm mt-1 ${isSelected ? 'text-current opacity-80' : 'text-gray-600'}`}>
-                      {method.description}
-                    </p>
-                    <div className="mt-2 space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span>ETA:</span>
-                        <span className="font-medium">{method.eta}</span>
+                <option value="">Select Province</option>
+                <option value="Western Province">Western Province</option>
+                <option value="Central Province">Central Province</option>
+                <option value="Southern Province">Southern Province</option>
+                <option value="Northern Province">Northern Province</option>
+                <option value="Eastern Province">Eastern Province</option>
+                <option value="North Central Province">North Central Province</option>
+                <option value="North Western Province">North Western Province</option>
+                <option value="Uva Province">Uva Province</option>
+                <option value="Sabaragamuwa Province">Sabaragamuwa Province</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Delivery Date */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Date & Time</label>
+          <input
+            name="deliveryDate"
+            type="datetime-local"
+            value={form.deliveryDate}
+            onChange={handleChange}
+            min={new Date().toISOString().slice(0, 16)}
+            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+              "deliveryDate"
+            )}`}
+          />
+          {errors.deliveryDate && (
+            <p className="text-red-600 text-xs mt-1">{errors.deliveryDate}</p>
+          )}
+          <p className="text-xs text-gray-500 mt-1">Please select a future date and time for delivery</p>
+        </div>
+
+        {/* Status (only for editing) */}
+        {editing && (
+          <div>
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="pending">Pending</option>
+              <option value="in_transit">In Transit</option>
+              <option value="delivered">Delivered</option>
+              <option value="failed">Failed</option>
+            </select>
+          </div>
+        )}
+
+        {/* Enhanced Agent Details Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-violet-50 p-6 rounded-lg border border-purple-200">
+          <div className="flex items-center mb-4">
+            <span className="text-2xl mr-2">👤</span>
+            <h3 className="text-lg font-semibold text-purple-700">Delivery Agent / Driver Details</h3>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Driver Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">👤 Select Driver</label>
+              <select
+                name="agentDetails.driverSelection"
+                value={form.agentDetails?.driverSelection || ""}
+                onChange={handleDriverSelection}
+                className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="">Select a Driver</option>
+                <option value="driver1">Nimal Perera - ABC-1234</option>
+                <option value="driver2">Sunil Jayawardena - XYZ-5678</option>
+                <option value="driver3">Kamal Fernando - DEF-4321</option>
+                <option value="driver4">Priya Silva - GHI-8765</option>
+                <option value="driver5">Roshan De Silva - JKL-6543</option>
+              </select>
+            </div>
+
+            {/* Agent Name and Contact */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Agent Name</label>
+                <input
+                  name="agentDetails.agentName"
+                  placeholder="Agent name"
+                  value={form.agentDetails?.agentName || ""}
+                  onChange={handleChange}
+                  className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">Auto-filled from driver selection</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Agent Phone Number</label>
+                <div className="relative">
+                  <input
+                    name="agentDetails.agentPhone"
+                    placeholder="0771234567"
+                    value={form.agentDetails?.agentPhone || ""}
+                    onChange={handleChange}
+                    className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12 bg-gray-50"
+                    readOnly
+                  />
+                  <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">📞</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Auto-filled from driver selection</p>
+              </div>
+            </div>
+
+            {/* Vehicle Number and Assignment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Number</label>
+                <input
+                  name="agentDetails.vehicleNumber"
+                  placeholder="ABC-1234"
+                  value={form.agentDetails?.vehicleNumber || ""}
+                  onChange={handleChange}
+                  className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
+                  readOnly
+                />
+                <p className="text-xs text-gray-500 mt-1">Auto-filled from driver selection</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Date & Time</label>
+                <input
+                  name="agentDetails.assignedDateTime"
+                  type="datetime-local"
+                  value={form.agentDetails?.assignedDateTime || ""}
+                  onChange={handleChange}
+                  className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+
+            {/* Delivery Status */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Status</label>
+              <select
+                name="agentDetails.deliveryStatus"
+                value={form.agentDetails?.deliveryStatus || "assigned"}
+                onChange={handleChange}
+                className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                <option value="assigned">Assigned</option>
+                <option value="in_progress">In Progress</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Delivery Method Section */}
+        <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-6 rounded-lg border border-indigo-200">
+          <div className="flex items-center mb-4">
+            <span className="text-2xl mr-2">🚚</span>
+            <h3 className="text-lg font-semibold text-indigo-700">Delivery Method</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {Object.entries(deliveryMethods).map(([key, method]) => (
+                <div
+                  key={key}
+                  className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                    form.deliveryMethod?.type === key
+                      ? 'border-indigo-500 bg-indigo-50'
+                      : key === 'eco' 
+                        ? 'border-green-200 bg-green-50 hover:border-green-300'
+                        : 'border-gray-200 bg-white hover:border-indigo-300'
+                  }`}
+                  onClick={() => {
+                    setForm(prev => ({
+                      ...prev,
+                      deliveryMethod: {
+                        type: key,
+                        description: method.description,
+                        charge: method.charge,
+                        estimatedTime: method.estimatedTime,
+                        features: method.features
+                      }
+                    }));
+                  }}
+                >
+                  <div className="flex items-center mb-3">
+                    <span className="text-2xl mr-2">{method.icon}</span>
+                    <h4 className="font-semibold text-gray-800">{method.name}</h4>
+                    <div className="ml-auto flex items-center space-x-2">
+                      {key === 'eco' && (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">
+                          🌱 ECO
+                        </span>
+                      )}
+                      {form.deliveryMethod?.type === key && (
+                        <span className="text-green-600">✓</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3">{method.description}</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">ETA:</span>
+                      <span className="font-medium text-blue-600">{method.estimatedTime}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Charge:</span>
+                      <span className={`font-bold ${method.charge === 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                        {method.charge === 0 ? 'FREE' : `Rs. ${method.charge}`}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-3 p-2 bg-gray-50 rounded text-xs">
+                    <div className="flex items-center mb-1">
+                      <span className="text-green-500 mr-1">✅</span>
+                      <strong>Best for:</strong>
+                    </div>
+                    <span className="text-gray-700">{method.bestFor}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Selected Method Details */}
+            {form.deliveryMethod?.type && (
+              <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <h4 className="font-semibold text-indigo-700 mb-2">
+                  {deliveryMethods[form.deliveryMethod.type].icon} {deliveryMethods[form.deliveryMethod.type].name}
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h5 className="font-medium text-gray-700 mb-2">Features:</h5>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {deliveryMethods[form.deliveryMethod.type].features.map((feature, index) => (
+                        <li key={index} className="flex items-start">
+                          <span className="text-green-500 mr-2">•</span>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div>
+                    <h5 className="font-medium text-gray-700 mb-2">Delivery Summary:</h5>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Estimated Time:</span>
+                        <span className="font-medium">{deliveryMethods[form.deliveryMethod.type].estimatedTime}</span>
                       </div>
-                      <div className="flex justify-between text-xs">
-                        <span>Charge:</span>
-                        <span className="font-medium">
-                          {method.charge === 0 ? 'Free' : 
-                           method.charge === 'Variable' ? 'Variable' : 
-                           `Rs. ${method.charge}`}
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Delivery Charge:</span>
+                        <span className={`font-bold text-lg ${deliveryMethods[form.deliveryMethod.type].charge === 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                          {deliveryMethods[form.deliveryMethod.type].charge === 0 ? 'FREE' : `Rs. ${deliveryMethods[form.deliveryMethod.type].charge}`}
                         </span>
                       </div>
-                    </div>
-                    <div className="mt-2">
-                      <p className="text-xs font-medium">✅ Best for:</p>
-                      <p className="text-xs">{method.suitableFor}</p>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Best For:</span>
+                        <span className="font-medium text-blue-600">{deliveryMethods[form.deliveryMethod.type].bestFor}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
-        {errors.deliveryMethod && (
-          <p className="text-red-600 text-xs mt-1">{errors.deliveryMethod}</p>
-        )}
-      </div>
-
-      {/* Delivery Summary */}
-      {form.deliveryMethod && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-50 p-4 rounded-lg border border-gray-200"
-        >
-          <h4 className="font-semibold text-[#7B3F00] mb-2">📋 Delivery Summary</h4>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium">Method:</span> {deliveryMethods.find(m => m.id === form.deliveryMethod)?.name}
-            </div>
-            <div>
-              <span className="font-medium">ETA:</span> {form.estimatedTime}
-            </div>
-            <div>
-              <span className="font-medium">Charge:</span> {form.deliveryCharge === 0 ? 'Free' : `Rs. ${form.deliveryCharge}`}
-            </div>
-            <div>
-              <span className="font-medium">Tracking:</span> {form.trackingAvailable ? 'Available' : 'Not Available'}
-            </div>
+            )}
           </div>
-        </motion.div>
-      )}
+        </div>
 
-      {/* Submit and Cancel Buttons */}
-      <div className="flex gap-4">
-        {editing && (
-          <button
-            type="button"
-            onClick={() => setEditing(null)}
-            className="flex-1 py-3 rounded-xl bg-gray-500 text-white font-semibold hover:bg-gray-600 transition-colors duration-300 lowercase"
-          >
-            cancel edit
-          </button>
-        )}
-      <button
-        type="submit"
-          className={`py-3 rounded-xl bg-[#7B3F00] text-white font-semibold hover:bg-[#5C2C00] transition-colors duration-300 lowercase ${
-            editing ? 'flex-1' : 'w-full'
-          }`}
-      >
-        {editing ? "update smart delivery" : "create smart delivery"}
-      </button>
-      </div>
-    </motion.form>
+        {/* Delivery Notes */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Notes (Optional)</label>
+          <textarea
+            name="deliveryNotes"
+            placeholder="Additional delivery instructions or notes..."
+            value={form.deliveryNotes}
+            onChange={handleChange}
+            rows="3"
+            className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-[#7B3F00] text-white py-3 rounded-lg hover:bg-[#6A2C00] transition duration-300"
+        >
+          {editing ? "Update Delivery" : "Add Delivery"}
+        </button>
+      </form>
+    </>
   );
 }
 

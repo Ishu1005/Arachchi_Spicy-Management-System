@@ -41,7 +41,6 @@ const customerRoutes = require('./routes/customerRoutes');
 const orderRoutes = require('./routes/orderRoutes');
 const feedbackRoutes = require('./routes/feedbackRoutes');
 const deliveryRoutes = require('./routes/deliveryRoutes');
-const analyticsRoutes = require('./routes/analyticsRoutes');
 const { connectDB } = require('./config/dbconnection');
 
 app.use('/api/auth', authRoutes);
@@ -52,7 +51,6 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/delivery', deliveryRoutes);
-app.use('/api/analytics', analyticsRoutes);
 
 // Server Connection
 const PORT = process.env.PORT || 5000;

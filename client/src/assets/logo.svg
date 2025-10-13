@@ -1,75 +1,39 @@
-<svg width="200" height="140" viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">
-  <!-- Circular Icon -->
+<svg width="300" height="80" viewBox="0 0 300 80" xmlns="http://www.w3.org/2000/svg" >
   <defs>
-    <radialGradient id="goldGradient" cx="50%" cy="30%" r="70%">
-      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
-      <stop offset="30%" style="stop-color:#FFA500;stop-opacity:1" />
-      <stop offset="70%" style="stop-color:#DAA520;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#B8860B;stop-opacity:1" />
-    </radialGradient>
-    <linearGradient id="brownGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#6B2C00;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#5D2C00;stop-opacity:1" />
+    <!-- Cinnamon gradient with animation -->
+    <linearGradient id="animatedCinnamonGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#959595">
+        <animate attributeName="stop-color" values="#959595;#ff7c1e;#ff4400;#ff7c1e;#959595" dur="6s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="50%" stop-color="#ff7c1e">
+        <animate attributeName="stop-color" values="#ff7c1e;#ff4400;#959595;#ff4400;#ff7c1e" dur="6s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="#ff4400">
+        <animate attributeName="stop-color" values="#ff4400;#959595;#ff7c1e;#959595;#ff4400" dur="6s" repeatCount="indefinite"/>
+      </stop>
     </linearGradient>
-    <linearGradient id="trunkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#CD853F;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#A0522D;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#8B4513;stop-opacity:1" />
+
+    <!-- Original text gradient for SPICES -->
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
     </linearGradient>
-    <linearGradient id="frondGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#32CD32;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#228B22;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="frondGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#90EE90;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#32CD32;stop-opacity:1" />
-    </linearGradient>
+
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.1"/>
+    </filter>
   </defs>
 
-  <!-- Gold Circle Border with enhanced gradient -->
-  <circle cx="100" cy="60" r="50" fill="url(#goldGradient)" stroke="#B8860B" stroke-width="4"/>
-  
-  <!-- Dark Brown Inner Circle -->
-  <circle cx="100" cy="60" r="44" fill="url(#brownGradient)"/>
-  
-  <!-- Beautiful Palm Tree Trunk with realistic texture -->
-  <rect x="94" y="45" width="12" height="28" fill="url(#trunkGradient)" rx="2"/>
-  
-  <!-- Trunk texture lines -->
-  <line x1="96" y1="48" x2="96" y2="70" stroke="#8B4513" stroke-width="0.8"/>
-  <line x1="98" y1="48" x2="98" y2="70" stroke="#8B4513" stroke-width="0.8"/>
-  <line x1="100" y1="48" x2="100" y2="70" stroke="#8B4513" stroke-width="0.8"/>
-  <line x1="102" y1="48" x2="102" y2="70" stroke="#8B4513" stroke-width="0.8"/>
-  <line x1="104" y1="48" x2="104" y2="70" stroke="#8B4513" stroke-width="0.8"/>
-  
-  <!-- Horizontal texture rings -->
-  <ellipse cx="100" cy="52" rx="6" ry="1" fill="#8B4513" opacity="0.6"/>
-  <ellipse cx="100" cy="58" rx="6" ry="1" fill="#8B4513" opacity="0.6"/>
-  <ellipse cx="100" cy="64" rx="6" ry="1" fill="#8B4513" opacity="0.6"/>
-  
-  <!-- Beautiful Palm Tree Fronds - More detailed and realistic -->
-  <!-- Main fronds -->
-  <path d="M100 45 L75 20 L80 15 L100 35 L120 15 L125 20 L100 45 Z" fill="url(#frondGradient1)"/>
-  <path d="M100 45 L85 10 L90 5 L100 25 L110 5 L115 10 L100 45 Z" fill="url(#frondGradient2)"/>
-  
-  <!-- Side fronds -->
-  <path d="M100 45 L88 25 L92 22 L100 40 L108 22 L112 25 L100 45 Z" fill="url(#frondGradient1)"/>
-  <path d="M100 45 L82 30 L86 28 L100 42 L114 28 L118 30 L100 45 Z" fill="url(#frondGradient2)"/>
-  
-  <!-- Additional smaller fronds for fullness -->
-  <path d="M100 45 L90 18 L94 16 L100 30 L106 16 L110 18 L100 45 Z" fill="url(#frondGradient1)"/>
-  <path d="M100 45 L78 35 L82 33 L100 43 L118 33 L122 35 L100 45 Z" fill="url(#frondGradient2)"/>
-  
-  <!-- Frond details - veins -->
-  <path d="M100 45 L90 25" stroke="#228B22" stroke-width="0.5" opacity="0.7"/>
-  <path d="M100 45 L110 25" stroke="#228B22" stroke-width="0.5" opacity="0.7"/>
-  <path d="M100 45 L95 15" stroke="#228B22" stroke-width="0.5" opacity="0.7"/>
-  <path d="M100 45 L105 15" stroke="#228B22" stroke-width="0.5" opacity="0.7"/>
-  
-  <!-- Brand Name - ARACHCHCHI -->
-  <text x="100" y="100" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="white" stroke="#5D2C00" stroke-width="1.5">ARACHCHCHI</text>
-  
-  <!-- Spices Tagline -->
-  <text x="100" y="120" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#FFD700">SPICES</text>
+  <!-- ARACHCHI with animated cinnamon gradient -->
+  <text x="80" y="45" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="url(#animatedCinnamonGradient)" filter="url(#shadow)">
+    ARACHCHI
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
+  </text>
+
+  <!-- SPICES text -->
+  <text x="80" y="75" font-family="Arial, sans-serif" font-size="18" font-weight="normal" fill="url(#textGradient)" letter-spacing="3px">
+    SPICES
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="2.5s" repeatCount="indefinite"/>
+  </text>
 </svg>
