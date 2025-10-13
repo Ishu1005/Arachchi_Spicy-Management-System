@@ -155,9 +155,10 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Customer Name */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
           <input
             name="customerName"
-            placeholder="Customer Name"
+            placeholder="Enter customer name"
             value={form.customerName}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -171,10 +172,11 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Customer Email */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
           <input
             name="customerEmail"
             type="email"
-            placeholder="Customer Email"
+            placeholder="Enter customer email"
             value={form.customerEmail}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -188,9 +190,10 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Product Selection */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Product Name</label>
           <input
             name="productId"
-            placeholder="Product Name (e.g., Cinnamon, Cardamom, Pepper)"
+            placeholder="Enter product name (e.g., Cinnamon, Cardamom, Pepper)"
             value={form.productId}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -286,9 +289,10 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Comment */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Comment</label>
           <textarea
             name="comment"
-            placeholder="Customer Comment"
+            placeholder="Enter customer comment"
             value={form.comment}
             onChange={handleChange}
             rows="4"
