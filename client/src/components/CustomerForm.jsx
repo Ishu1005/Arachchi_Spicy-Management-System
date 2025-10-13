@@ -92,8 +92,9 @@ function CustomerForm({ fetchCustomers, editing, setEditing }) {
   };
 
 
-  const textInput = (name, placeholder, type = "text") => (
+  const textInput = (name, placeholder, type = "text", label) => (
     <div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
       <input
         type={type}
         name={name}
@@ -126,10 +127,10 @@ function CustomerForm({ fetchCustomers, editing, setEditing }) {
           {editing ? "Edit Customer" : "Add New Customer"}
         </h2>
 
-        {textInput("name", "Customer Name")}
-        {textInput("contact", "Contact Number")}
-        {textInput("email", "Email", "email")}
-        {textInput("address", "Address")}
+        {textInput("name", "Enter customer name", "text", "Customer Name")}
+        {textInput("contact", "Enter contact number", "text", "Contact Number")}
+        {textInput("email", "Enter email address", "email", "Email")}
+        {textInput("address", "Enter address", "text", "Address")}
 
         <button
           type="submit"

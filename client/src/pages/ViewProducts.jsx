@@ -46,7 +46,7 @@ function ViewProducts() {
               onClick={() => openModal(`http://localhost:5000/uploads/${p.image}`)}
             />
 
-            <h2 className="text-lg font-semibold text-cinnamon">{p.name}</h2>
+            <h2 className="text-xl font-bold text-cinnamon text-center">{p.name}</h2>
             <p className="text-sm text-cinnamon">{p.description}</p>
             <p className="text-sm italic text-cinnamon-hover">{p.category}</p>
 
@@ -65,12 +65,12 @@ function ViewProducts() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
               <div key={product._id} className="bg-white rounded-xl shadow-md p-4 border border-cinnamon-light">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-cinnamon text-lg">{product.name}</h3>
+                <div className="text-center mb-3">
+                  <h3 className="font-bold text-cinnamon text-xl">{product.name}</h3>
                   <img 
                     src={`http://localhost:5000/uploads/${product.image}`} 
                     alt={product.name}
-                    className="h-10 w-10 object-cover rounded-full border border-cinnamon-light"
+                    className="h-12 w-12 object-cover rounded-full border border-cinnamon-light mx-auto mt-2"
                   />
                 </div>
                 <SmartQualityAssurance product={product} />

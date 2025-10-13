@@ -40,7 +40,10 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         return Number(value) >= 0 ? "" : "Quantity cannot be negative";
       case "popularity":
         if (value === "") return "";
-        return Number(value) >= 0 ? "" : "Popularity cannot be negative";
+        const popularityNum = Number(value);
+        if (popularityNum < 0) return "Popularity cannot be negative";
+        if (popularityNum > 5) return "Popularity cannot exceed 5 stars";
+        return "";
       case "image":
         if (!form.image && !editing) return "Product image is required";
         return "";
@@ -134,17 +137,18 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
           {editing ? "Edit Product" : "Add New Product"}
         </h2>
 
-        {/* Name */}
+
+        {/* Spice Name */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Spice Name</label>
           <input
             name="name"
-            placeholder="Spice Name"
+            placeholder="Enter spice name"
             value={form.name}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
               "name"
             )}`}
-            // removed native required
           />
           {errors.name && (
             <p className="text-red-600 text-xs mt-1">{errors.name}</p>
@@ -152,31 +156,38 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         </div>
 
         {/* Description */}
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+          <textarea
+            name="description"
+            placeholder="Enter product description"
+            value={form.description}
+            onChange={handleChange}
+            className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
 
         {/* Category */}
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-        >
-          <option value="whole">Whole</option>
-          <option value="powder">Powder</option>
-          <option value="organic">Organic</option>
-        </select>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="whole">Whole</option>
+            <option value="powder">Powder</option>
+            <option value="organic">Organic</option>
+          </select>
+        </div>
 
         {/* Price */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Price</label>
           <input
             name="price"
-            placeholder="Price"
+            placeholder="Enter price"
             type="number"
             value={form.price}
             onChange={handleChange}
@@ -191,9 +202,10 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
 
         {/* Quantity */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
           <input
             name="quantity"
-            placeholder="Quantity"
+            placeholder="Enter quantity"
             type="number"
             value={form.quantity}
             onChange={handleChange}
@@ -206,42 +218,89 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
           )}
         </div>
 
-        {/* Popularity */}
+        {/* Popularity - Star Rating */}
         <div>
-          <input
-            name="popularity"
-            placeholder="Popularity"
-            type="number"
-            value={form.popularity}
-            onChange={handleChange}
-            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
-              "popularity"
-            )}`}
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-2">Popularity Rating (0-5 Stars)</label>
+          <div className="flex items-center space-x-2">
+            <div className="flex space-x-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => {
+                    const newValue = star.toString();
+                    setForm(prev => ({ ...prev, popularity: newValue }));
+                    setErrors(prev => ({
+                      ...prev,
+                      popularity: validateField("popularity", newValue)
+                    }));
+                  }}
+                  className={`text-2xl transition-colors duration-200 ${
+                    star <= parseInt(form.popularity || 0)
+                      ? "text-yellow-400"
+                      : "text-gray-300"
+                  } hover:text-yellow-400`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+            <span className="text-sm font-medium text-yellow-600">
+              {form.popularity || 0}/5
+            </span>
+          </div>
+          <div className="mt-2">
+            <input
+              name="popularity"
+              placeholder="Enter rating (0-5)"
+              type="number"
+              min="0"
+              max="5"
+              step="1"
+              value={form.popularity}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Ensure value is between 0 and 5
+                if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 5)) {
+                  setForm(prev => ({ ...prev, popularity: value }));
+                  setErrors(prev => ({
+                    ...prev,
+                    popularity: validateField("popularity", value)
+                  }));
+                }
+              }}
+              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm ${borderClass(
+                "popularity"
+              )}`}
+            />
+          </div>
           {errors.popularity && (
             <p className="text-red-600 text-xs mt-1">{errors.popularity}</p>
           )}
         </div>
 
-        {/* Custom File Upload */}
-        <div className="relative">
-          <input
-            name="image"
-            type="file"
-            id="fileInput"
-            onChange={handleChange}
-            className="absolute opacity-0 w-full h-full cursor-pointer"
-            accept="image/*"
-          />
-          <button
-            type="button"
-            onClick={() => document.getElementById("fileInput").click()}
-            className={`w-full p-4 border rounded-lg text-center bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
-              "image"
-            )}`}
-          >
-            {form.image ? form.image.name : "Choose Product Image"}
-          </button>
+        {/* Product Image */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
+          <div className="relative">
+            <input
+              name="image"
+              type="file"
+              id="fileInput"
+              onChange={handleChange}
+              className="absolute opacity-0 w-full h-full cursor-pointer"
+              accept="image/*"
+            />
+            <button
+              type="button"
+              onClick={() => document.getElementById("fileInput").click()}
+              className={`w-full p-4 border rounded-lg text-center bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+                "image"
+              )}`}
+            >
+              {form.image ? form.image.name : "Choose Product Image"}
+            </button>
+          </div>
           {errors.image && (
             <p className="text-red-600 text-xs mt-1">{errors.image}</p>
           )}
