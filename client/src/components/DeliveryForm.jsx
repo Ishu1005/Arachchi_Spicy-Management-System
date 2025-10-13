@@ -178,7 +178,7 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
 
   // Smart delivery analysis when order is selected
   useEffect(() => {
-    if (form.orderId) {
+    if (form.orderId && orders && orders.length > 0) {
       const selectedOrder = orders.find(order => order._id === form.orderId);
       if (selectedOrder) {
         analyzeOrderForSmartDelivery(selectedOrder);
@@ -196,15 +196,15 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
 
     // Populate order information
     const orderInfo = {
-      orderDate: order.createdAt || new Date().toISOString(),
-      productsList: order.items || [],
-      totalAmount: order.totalAmount || 0,
-      paymentStatus: order.paymentStatus || "pending",
-      orderNumber: order.orderNumber || `ORD-${Date.now()}`
+      orderDate: order?.createdAt || new Date().toISOString(),
+      productsList: order?.items || [],
+      totalAmount: order?.totalAmount || 0,
+      paymentStatus: order?.paymentStatus || "pending",
+      orderNumber: order?.orderNumber || `ORD-${Date.now()}`
     };
 
     // Check if it's a bulk order (quantity > 10)
-    const totalQuantity = order.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+    const totalQuantity = order?.items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
     if (totalQuantity > 10) {
       smartAnalysis.bulkOrderSuggestion = true;
       toast.info("🤖 Bulk order detected! Consider express delivery for better customer satisfaction.", {
@@ -405,7 +405,7 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
             <option value="">Select Order</option>
             {orders.map(order => (
               <option key={order._id} value={order._id}>
-                Order #{order.orderNumber} - ${order.totalAmount}
+                Order #{order?.orderNumber || order._id} - ${order?.totalAmount || 0}
               </option>
             ))}
           </select>
