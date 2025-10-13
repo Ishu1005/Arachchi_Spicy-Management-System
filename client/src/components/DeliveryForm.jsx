@@ -535,9 +535,10 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
 
         {/* Customer Name */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
           <input
             name="customerName"
-            placeholder="Customer Name"
+            placeholder="Enter customer name"
             value={form.customerName}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -551,10 +552,11 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
 
         {/* Customer Email */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Email</label>
           <input
             name="customerEmail"
             type="email"
-            placeholder="Customer Email"
+            placeholder="Enter customer email"
             value={form.customerEmail}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -568,9 +570,10 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
 
         {/* Customer Phone */}
         <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
           <input
             name="customerPhone"
-            placeholder="Customer Phone"
+            placeholder="Enter customer phone number"
             value={form.customerPhone}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
