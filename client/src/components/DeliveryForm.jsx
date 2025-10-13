@@ -543,14 +543,14 @@ function DeliveryForm({ fetchDeliveries, editing, setEditing }) {
             cancel edit
           </button>
         )}
-        <button
-          type="submit"
+      <button
+        type="submit"
           className={`py-3 rounded-xl bg-[#7B3F00] text-white font-semibold hover:bg-[#5C2C00] transition-colors duration-300 lowercase ${
             editing ? 'flex-1' : 'w-full'
           }`}
-        >
-          {editing ? "update smart delivery" : "create smart delivery"}
-        </button>
+      >
+        {editing ? "update smart delivery" : "create smart delivery"}
+      </button>
       </div>
     </motion.form>
   );

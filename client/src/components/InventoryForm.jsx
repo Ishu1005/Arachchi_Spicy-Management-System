@@ -90,14 +90,22 @@ function InventoryForm({ fetchInventoryItems, editing, setEditing }) {
         {editing ? 'Update Product' : 'Add New Product'}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {['name', 'category', 'price', 'quantity'].map((field) => (
+        {[
+          { field: 'name', label: 'Product Name', placeholder: 'Enter product name' },
+          { field: 'category', label: 'Category', placeholder: 'Enter product category' },
+          { field: 'price', label: 'Price (Rs.)', placeholder: 'Enter price', type: 'number' },
+          { field: 'quantity', label: 'Quantity', placeholder: 'Enter quantity', type: 'number' }
+        ].map(({ field, label, placeholder, type = 'text' }) => (
           <div key={field}>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+              {label}
+            </label>
             <input
               name={field}
-              type={field === 'price' || field === 'quantity' ? 'number' : 'text'}
+              type={type}
               value={form[field]}
               onChange={handleChange}
-              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+              placeholder={placeholder}
               className={`w-full p-3 border ${borderClass(field)} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]`}
             />
             {errors[field] && (

@@ -155,9 +155,12 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Customer Name */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+            Customer Name
+          </label>
           <input
             name="customerName"
-            placeholder="Customer Name"
+            placeholder="Enter customer name"
             value={form.customerName}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -171,10 +174,13 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Customer Email */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+            Customer Email
+          </label>
           <input
             name="customerEmail"
             type="email"
-            placeholder="Customer Email"
+            placeholder="Enter customer email"
             value={form.customerEmail}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -188,9 +194,12 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Product Selection */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+            Product Name
+          </label>
           <input
             name="productId"
-            placeholder="Product Name (e.g., Cinnamon, Cardamom, Pepper)"
+            placeholder="Enter product name (e.g., Cinnamon, Cardamom, Pepper)"
             value={form.productId}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
@@ -204,6 +213,9 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Rating */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+            Rating
+          </label>
           <select
             name="rating"
             value={form.rating}
@@ -286,9 +298,12 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Comment */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+            Customer Comment
+          </label>
           <textarea
             name="comment"
-            placeholder="Customer Comment"
+            placeholder="Enter customer comment"
             value={form.comment}
             onChange={handleChange}
             rows="4"
@@ -304,6 +319,9 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
         {/* Status (only for editing) */}
         {editing && (
           <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+              Status
+            </label>
             <select
               name="status"
               value={form.status}
@@ -319,15 +337,20 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Public Visibility (only for editing) */}
         {editing && (
-          <div className="flex items-center space-x-2">
-            <input
-              name="isPublic"
-              type="checkbox"
-              checked={form.isPublic}
-              onChange={handleChange}
-              className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
-            />
-            <label className="text-sm text-gray-700">Make feedback public</label>
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#7B3F00] mb-1">
+              Visibility
+            </label>
+            <div className="flex items-center space-x-2">
+              <input
+                name="isPublic"
+                type="checkbox"
+                checked={form.isPublic}
+                onChange={handleChange}
+                className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+              />
+              <label className="text-sm text-gray-700">Make feedback public</label>
+            </div>
           </div>
         )}
 
