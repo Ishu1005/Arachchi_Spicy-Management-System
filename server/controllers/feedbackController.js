@@ -4,14 +4,16 @@ let nextFeedbackId = 1;
 
 exports.createFeedback = async (req, res) => {
   try {
-    const { customerName, customerEmail, productId, rating, comment } = req.body;
+    const { customerName, customerEmail, productId, rating, emojiReaction, mood, comment } = req.body;
     
     const newFeedback = {
       _id: nextFeedbackId++,
       customerName,
       customerEmail,
-      productId: parseInt(productId),
+      productName: productId, // Store as product name instead of ID
       rating: parseInt(rating),
+      emojiReaction: emojiReaction || '',
+      mood: mood || '',
       comment,
       status: 'pending',
       isPublic: false,

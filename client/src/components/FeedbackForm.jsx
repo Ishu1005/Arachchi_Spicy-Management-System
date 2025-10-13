@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { motion } from "framer-motion";
 
 function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
   const INITIAL_FORM = {
@@ -9,6 +10,8 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
     customerEmail: "",
     productId: "",
     rating: "",
+    emojiReaction: "",
+    mood: "",
     comment: "",
     status: "pending",
     isPublic: false
@@ -16,6 +19,28 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
+
+  // Emoji reactions based on mood
+  const emojiReactions = {
+    happy: { emoji: "😊", label: "Happy", color: "text-yellow-500" },
+    excited: { emoji: "🤩", label: "Excited", color: "text-orange-500" },
+    satisfied: { emoji: "😌", label: "Satisfied", color: "text-green-500" },
+    neutral: { emoji: "😐", label: "Neutral", color: "text-gray-500" },
+    disappointed: { emoji: "😞", label: "Disappointed", color: "text-blue-500" },
+    frustrated: { emoji: "😤", label: "Frustrated", color: "text-red-500" },
+    angry: { emoji: "😠", label: "Angry", color: "text-red-600" },
+    surprised: { emoji: "😲", label: "Surprised", color: "text-purple-500" }
+  };
+
+  useEffect(() => {
+    if (editing) {
+      setForm({ ...editing });
+      setErrors({});
+    } else {
+      setForm(INITIAL_FORM);
+      setErrors({});
+    }
+  }, [editing]);
 
   useEffect(() => {
     if (editing) {
@@ -36,10 +61,14 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
         if (value === "") return "Customer email is required";
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Invalid email format";
       case "productId":
-        return value ? "" : "Product selection is required";
+        return value.trim() ? "" : "Product name is required";
       case "rating":
         if (value === "") return "Rating is required";
         return Number(value) >= 1 && Number(value) <= 5 ? "" : "Rating must be between 1 and 5";
+      case "emojiReaction":
+        return value ? "" : "Please select your mood reaction";
+      case "mood":
+        return value ? "" : "Please select your mood";
       case "comment":
         return value.trim() ? "" : "Comment is required";
       default:
@@ -159,21 +188,15 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
 
         {/* Product Selection */}
         <div>
-          <select
+          <input
             name="productId"
+            placeholder="Product Name (e.g., Cinnamon, Cardamom, Pepper)"
             value={form.productId}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
               "productId"
             )}`}
-          >
-            <option value="">Select Product</option>
-            {products.map(product => (
-              <option key={product._id} value={product._id}>
-                {product.name} - {product.category}
-              </option>
-            ))}
-          </select>
+          />
           {errors.productId && (
             <p className="text-red-600 text-xs mt-1">{errors.productId}</p>
           )}
@@ -198,6 +221,66 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products }) {
           </select>
           {errors.rating && (
             <p className="text-red-600 text-xs mt-1">{errors.rating}</p>
+          )}
+        </div>
+
+        {/* Emoji Reaction Selection */}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-3">
+            😊 How do you feel about this product?
+          </label>
+          <div className="grid grid-cols-4 gap-3">
+            {Object.entries(emojiReactions).map(([key, reaction]) => (
+              <motion.button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setForm(prev => ({
+                    ...prev,
+                    emojiReaction: reaction.emoji,
+                    mood: key
+                  }));
+                  setErrors(prev => ({
+                    ...prev,
+                    emojiReaction: "",
+                    mood: ""
+                  }));
+                }}
+                className={`p-4 rounded-lg border-2 transition-all duration-200 ${
+                  form.mood === key
+                    ? 'border-[#7B3F00] bg-amber-50 shadow-md'
+                    : 'border-gray-200 hover:border-amber-300 hover:bg-gray-50'
+                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <div className="text-center">
+                  <div className={`text-3xl mb-2 ${reaction.color}`}>
+                    {reaction.emoji}
+                  </div>
+                  <div className="text-xs font-medium text-gray-700">
+                    {reaction.label}
+                  </div>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+          {errors.emojiReaction && (
+            <p className="text-red-600 text-xs mt-1">{errors.emojiReaction}</p>
+          )}
+          {form.emojiReaction && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg"
+            >
+              <div className="flex items-center">
+                <span className="text-2xl mr-2">{form.emojiReaction}</span>
+                <span className="text-green-800 font-medium">
+                  Selected: {emojiReactions[form.mood]?.label}
+                </span>
+              </div>
+            </motion.div>
           )}
         </div>
 

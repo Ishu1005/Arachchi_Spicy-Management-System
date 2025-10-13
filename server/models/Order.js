@@ -13,6 +13,10 @@ const orderSchema = new mongoose.Schema({
   address: { type: String, required: true },
   customerName: { type: String },
   customerContact: { type: String },
+  orderDate: { type: Date, default: Date.now },
+  status: { type: String, default: 'pending', enum: ['pending', 'processing', 'completed', 'cancelled'] },
+  rating: { type: Number, min: 1, max: 5, default: null },
+  ratingComment: { type: String, default: '' },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { timestamps: true });
 

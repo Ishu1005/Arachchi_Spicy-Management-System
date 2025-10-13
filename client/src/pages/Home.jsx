@@ -56,9 +56,9 @@ function Home() {
       >
         <div className="absolute inset-0 bg-black/40"></div>
         <div className="relative z-10 text-center text-white px-6">
-          <h1 className="text-5xl font-bold lowercase">welcome to arachchi spices</h1>
+          <h1 className="text-5xl font-bold lowercase">WELCOME TO ARACHCHI SPICES</h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg">
-            discover the authentic taste of sri lanka with our premium cinnamon and exotic spices.
+            Discover the authentic taste of sri lanka with our premium cinnamon and exotic spices.
           </p>
         </div>
       </div>
@@ -100,7 +100,7 @@ function Home() {
           viewport={{ once: false, amount: 0.3 }}
           className="bg-white border border-[#D6A77A] rounded-xl shadow-lg p-6"
         >
-          <h2 className="text-center text-3xl font-bold text-[#7B3F00] mb-6 lowercase">available spices</h2>
+          <h2 className="text-center text-3xl font-bold text-[#7B3F00] mb-6 lowercase">Available Spices</h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#D6A77A] scrollbar-track-[#fffaf2]">
             {products.map(p => (
@@ -266,8 +266,8 @@ function Home() {
             <div>
               <p className="text-base">
                 <span className="font-semibold text-[#7B3F00]">address:</span><br />
-                123 Cinnamon Rd,<br />
-                Kandy, Sri Lanka
+                123, Nawodha,<br />
+                Hakmana, Matara, Sri Lanka
               </p>
             </div>
           </div>
@@ -297,11 +297,11 @@ function Home() {
           </div>
           <div className="p-8">
             <h3 className="text-3xl font-bold text-amber-900 mb-6 lowercase">about arachchi spices</h3>
-            <p className="text-amber-700 mb-6 leading-relaxed">established in 2008, arachchi spices is rooted in sri lankan spice tradition.</p>
+            <p className="text-amber-700 mb-6 leading-relaxed">established in 2023, arachchi spices is rooted in sri lankan spice tradition.</p>
             <p className="text-amber-700 mb-6 leading-relaxed">we work directly with local farmers in the hill country to produce the finest cinnamon.</p>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="text-center bg-amber-50 rounded-lg p-4">
-                <h4 className="font-bold text-amber-900 text-2xl">2008</h4>
+                <h4 className="font-bold text-amber-900 text-2xl">2023</h4>
                 <p className="text-amber-700 text-sm">established</p>
               </div>
               <div className="text-center bg-amber-50 rounded-lg p-4">

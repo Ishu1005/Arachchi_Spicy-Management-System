@@ -4,7 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import logo from '../assets/logo.svg';
 
-function Navbar() {
+function NavbarPublic() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -67,4 +67,4 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+export default NavbarPublic;

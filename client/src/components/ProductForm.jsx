@@ -136,15 +136,17 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
 
         {/* Name */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Spice Name
+          </label>
           <input
             name="name"
-            placeholder="Spice Name"
+            placeholder="Enter spice name"
             value={form.name}
             onChange={handleChange}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
               "name"
             )}`}
-            // removed native required
           />
           {errors.name && (
             <p className="text-red-600 text-xs mt-1">{errors.name}</p>
@@ -152,31 +154,44 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         </div>
 
         {/* Description */}
-        <textarea
-          name="description"
-          placeholder="Description"
-          value={form.description}
-          onChange={handleChange}
-          className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-        />
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Description
+          </label>
+          <textarea
+            name="description"
+            placeholder="Enter product description"
+            value={form.description}
+            onChange={handleChange}
+            className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
 
         {/* Category */}
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-        >
-          <option value="whole">Whole</option>
-          <option value="powder">Powder</option>
-          <option value="organic">Organic</option>
-        </select>
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Category
+          </label>
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="whole">Whole</option>
+            <option value="powder">Powder</option>
+            <option value="organic">Organic</option>
+          </select>
+        </div>
 
         {/* Price */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Price (Rs.)
+          </label>
           <input
             name="price"
-            placeholder="Price"
+            placeholder="Enter price"
             type="number"
             value={form.price}
             onChange={handleChange}
@@ -191,9 +206,12 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
 
         {/* Quantity */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Quantity
+          </label>
           <input
             name="quantity"
-            placeholder="Quantity"
+            placeholder="Enter quantity"
             type="number"
             value={form.quantity}
             onChange={handleChange}
@@ -208,9 +226,12 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
 
         {/* Popularity */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Popularity Rating
+          </label>
           <input
             name="popularity"
-            placeholder="Popularity"
+            placeholder="Enter popularity rating"
             type="number"
             value={form.popularity}
             onChange={handleChange}
@@ -224,27 +245,32 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         </div>
 
         {/* Custom File Upload */}
-        <div className="relative">
-          <input
-            name="image"
-            type="file"
-            id="fileInput"
-            onChange={handleChange}
-            className="absolute opacity-0 w-full h-full cursor-pointer"
-            accept="image/*"
-          />
-          <button
-            type="button"
-            onClick={() => document.getElementById("fileInput").click()}
-            className={`w-full p-4 border rounded-lg text-center bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
-              "image"
-            )}`}
-          >
-            {form.image ? form.image.name : "Choose Product Image"}
-          </button>
-          {errors.image && (
-            <p className="text-red-600 text-xs mt-1">{errors.image}</p>
-          )}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Product Image
+          </label>
+          <div className="relative">
+            <input
+              name="image"
+              type="file"
+              id="fileInput"
+              onChange={handleChange}
+              className="absolute opacity-0 w-full h-full cursor-pointer"
+              accept="image/*"
+            />
+            <button
+              type="button"
+              onClick={() => document.getElementById("fileInput").click()}
+              className={`w-full p-4 border rounded-lg text-center bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+                "image"
+              )}`}
+            >
+              {form.image ? form.image.name : "Choose Product Image"}
+            </button>
+            {errors.image && (
+              <p className="text-red-600 text-xs mt-1">{errors.image}</p>
+            )}
+          </div>
         </div>
 
         <button
