@@ -50,7 +50,6 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
       agentPhone: "",
       contactNumber: "",
       vehicleNumber: "",
-      assignedDateTime: "",
       deliveryStatus: "assigned" // Assigned / In Progress / Delivered / Cancelled
     },
     
@@ -801,30 +800,18 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
               </div>
             </div>
 
-            {/* Vehicle Number and Assignment */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Number</label>
-                <input
-                  name="agentDetails.vehicleNumber"
-                  placeholder="ABC-1234"
-                  value={form.agentDetails?.vehicleNumber || ""}
-                  onChange={handleChange}
-                  className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
-                  readOnly
-                />
-                <p className="text-xs text-gray-500 mt-1">Auto-filled from driver selection</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Assigned Date & Time</label>
-                <input
-                  name="agentDetails.assignedDateTime"
-                  type="datetime-local"
-                  value={form.agentDetails?.assignedDateTime || ""}
-                  onChange={handleChange}
-                  className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+            {/* Vehicle Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Vehicle Number</label>
+              <input
+                name="agentDetails.vehicleNumber"
+                placeholder="ABC-1234"
+                value={form.agentDetails?.vehicleNumber || ""}
+                onChange={handleChange}
+                className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 bg-gray-50"
+                readOnly
+              />
+              <p className="text-xs text-gray-500 mt-1">Auto-filled from driver selection</p>
             </div>
 
             {/* Delivery Status */}
