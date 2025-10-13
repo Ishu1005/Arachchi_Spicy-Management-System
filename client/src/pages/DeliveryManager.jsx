@@ -8,6 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pi
 import { motion } from 'framer-motion';
 import { MagnifyingGlassIcon, ArrowDownTrayIcon, MapPinIcon } from '@heroicons/react/24/solid';
 
+//funtions in delivery
+
 function DeliveryManager() {
   const [deliveries, setDeliveries] = useState([]);
   const [orders, setOrders] = useState([]);
