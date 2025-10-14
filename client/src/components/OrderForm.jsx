@@ -12,7 +12,13 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
     deliveryMethod: "",
     address: "",
     customerName: "",
-    customerContact: ""
+    customerContact: "",
+    orderDate: new Date().toISOString().split('T')[0],
+    orderTime: new Date().toLocaleTimeString('en-US', { 
+      hour12: false, 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    })
   };
 
   const [form, setForm] = useState(emptyForm);
@@ -45,6 +51,19 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
     if (name === "paymentMethod" || name === "deliveryMethod" || name === "address") {
       return value.trim() ? "" : `${name} is required.`;
     }
+    
+    // Only date validation (no time validation)
+    if (name === "orderDate") {
+      const selectedDate = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
+      
+      if (selectedDate < today) {
+        return "Order date cannot be in the past. Please select today or a future date.";
+      }
+    }
+    
     return "";
   };
 
@@ -52,7 +71,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
     const nextErrors = {};
 
     // top‑level fields
-    ["paymentMethod", "deliveryMethod", "address"].forEach((f) => {
+    ["paymentMethod", "deliveryMethod", "address", "orderDate"].forEach((f) => {
       const err = validateField(f, form[f]);
       if (err) nextErrors[f] = err;
     });
@@ -78,7 +97,10 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
   const handleChange = ({ target: { name, value } }) => {
     setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+    
+    // Validate the changed field
+    const error = validateField(name, value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
   };
 
   const handleItemChange = (idx, { target: { name, value } }) => {
@@ -153,6 +175,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
             >
               {/* item name */}
               <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Item Name</label>
                 <input
                   name="name"
                   placeholder="Item name"
@@ -169,6 +192,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
               {/* quantity */}
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Qty</label>
                 <input
                   name="quantity"
                   type="number"
@@ -187,6 +211,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
               {/* category */}
               <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Category</label>
                 <input
                   name="category"
                   placeholder="Category"
@@ -221,10 +246,11 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
         {/* payment & delivery */}
         <div className="grid gap-4 md:grid-cols-2">
           {[
-            { name: "paymentMethod", ph: "Payment method" },
-            { name: "deliveryMethod", ph: "Delivery method" }
-          ].map(({ name, ph }) => (
+            { name: "paymentMethod", ph: "Payment method", label: "Payment Method" },
+            { name: "deliveryMethod", ph: "Delivery method", label: "Delivery Method" }
+          ].map(({ name, ph, label }) => (
             <div key={name}>
+              <label className="block text-sm font-medium text-[#7B3F00] mb-2">{label}</label>
               <input
                 name={name}
                 placeholder={ph}
@@ -241,6 +267,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* address */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Delivery Address</label>
           <textarea
             name="address"
             placeholder="Delivery address"
@@ -256,14 +283,18 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* customer info */}
         <div className="grid gap-4 md:grid-cols-2">
-          <input
-            name="customerName"
-            placeholder="Customer name"
-            value={form.customerName}
-            onChange={handleChange}
-            className={`${baseInput} ${borderClass("customerName")}`}
-          />
           <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">Customer Name</label>
+            <input
+              name="customerName"
+              placeholder="Customer name"
+              value={form.customerName}
+              onChange={handleChange}
+              className={`${baseInput} ${borderClass("customerName")}`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">Customer Contact</label>
             <input
               name="customerContact"
               placeholder="Customer contact"
@@ -275,6 +306,41 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
               <p className="text-red-600 text-xs mt-1">
                 {errors.customerContact}
               </p>
+            )}
+          </div>
+        </div>
+
+        {/* order date and time */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+              Order Date
+            </label>
+            <input
+              name="orderDate"
+              type="date"
+              value={form.orderDate}
+              onChange={handleChange}
+              min={new Date().toISOString().split('T')[0]}
+              className={`${baseInput} ${borderClass("orderDate")}`}
+            />
+            {errors.orderDate && (
+              <p className="text-red-600 text-xs mt-1">{errors.orderDate}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+              Order Time
+            </label>
+            <input
+              name="orderTime"
+              type="time"
+              value={form.orderTime}
+              onChange={handleChange}
+              className={`${baseInput} ${borderClass("orderTime")}`}
+            />
+            {errors.orderTime && (
+              <p className="text-red-600 text-xs mt-1">{errors.orderTime}</p>
             )}
           </div>
         </div>

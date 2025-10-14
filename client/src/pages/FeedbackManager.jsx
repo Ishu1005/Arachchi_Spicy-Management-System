@@ -5,9 +5,31 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Papa from 'papaparse';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip as ChartTooltip,
+  Legend,
+} from 'chart.js';
 import { motion } from 'framer-motion';
 import { MagnifyingGlassIcon, ArrowDownTrayIcon, StarIcon } from '@heroicons/react/24/solid';
 import { toast } from 'react-toastify';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  ChartTooltip,
+  Legend
+);
 
 function FeedbackManager() {
   const [feedback, setFeedback] = useState([]);
@@ -15,6 +37,8 @@ function FeedbackManager() {
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [ratingHistory, setRatingHistory] = useState([]);
+  const [showChart, setShowChart] = useState(false);
 
   const fetchFeedback = async () => {
     try {
@@ -38,15 +62,220 @@ function FeedbackManager() {
     }
   };
 
+  const fetchRatingHistory = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/feedback');
+      const feedbacks = response.data;
+      
+      // Process rating data for chart
+      const last7Days = [];
+      const today = new Date();
+      
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayFeedbacks = feedbacks.filter(feedback => {
+          const feedbackDate = new Date(feedback.createdAt).toISOString().split('T')[0];
+          return feedbackDate === dateStr;
+        });
+        
+        const avgRating = dayFeedbacks.length > 0 
+          ? dayFeedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / dayFeedbacks.length
+          : 0;
+        
+        last7Days.push({
+          date: dateStr,
+          averageRating: Math.round(avgRating * 10) / 10,
+          count: dayFeedbacks.length
+        });
+      }
+      
+      setRatingHistory(last7Days);
+    } catch (error) {
+      console.error('Error fetching rating history:', error);
+    }
+  };
+
   useEffect(() => { 
     fetchFeedback(); 
     fetchProducts();
+    fetchRatingHistory();
   }, [search, statusFilter]);
 
   const handleDelete = async (id) => {
     if (window.confirm('Delete this feedback?')) {
       await axios.delete(`http://localhost:5000/api/feedback/${id}`);
       fetchFeedback();
+      fetchRatingHistory(); // Refresh chart data
+    }
+  };
+
+  // Chart data configuration with emoji wave effects
+  const chartData = {
+    labels: ratingHistory.map(item => {
+      const date = new Date(item.date);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }),
+    datasets: [
+      {
+        label: 'Average Rating',
+        data: ratingHistory.map(item => item.averageRating),
+        borderColor: 'rgb(123, 63, 0)',
+        backgroundColor: 'rgba(123, 63, 0, 0.1)',
+        borderWidth: 4,
+        pointBackgroundColor: 'rgb(123, 63, 0)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 3,
+        pointRadius: 8,
+        tension: 0.6, // More wave-like curve
+        pointHoverRadius: 12,
+        pointHoverBackgroundColor: 'rgb(123, 63, 0)',
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 4,
+      },
+      {
+        label: 'Feedback Count',
+        data: ratingHistory.map(item => item.count),
+        borderColor: 'rgb(34, 197, 94)',
+        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+        borderWidth: 3,
+        pointBackgroundColor: 'rgb(34, 197, 94)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
+        pointRadius: 6,
+        tension: 0.6, // More wave-like curve
+        yAxisID: 'y1',
+        pointHoverRadius: 10,
+        pointHoverBackgroundColor: 'rgb(34, 197, 94)',
+        pointHoverBorderColor: '#fff',
+        pointHoverBorderWidth: 3,
+      }
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false, // Allow custom height
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            size: 12,
+            weight: 'bold'
+          }
+        }
+      },
+      title: {
+        display: true,
+        text: '📊 Smart Rating Trends (Last 7 Days) 🌟',
+        font: {
+          size: 14,
+          weight: 'bold'
+        },
+        color: '#7B3F00'
+      },
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        titleColor: '#fff',
+        bodyColor: '#fff',
+        borderColor: '#7B3F00',
+        borderWidth: 2,
+        cornerRadius: 8,
+        displayColors: true,
+        callbacks: {
+          title: function(context) {
+            return `📅 ${context[0].label}`;
+          },
+          label: function(context) {
+            const emoji = context.datasetIndex === 0 ? 
+              (context.parsed.y >= 4 ? '🌟' : context.parsed.y >= 3 ? '😊' : context.parsed.y >= 2 ? '😐' : '😞') :
+              '📝';
+            return `${emoji} ${context.dataset.label}: ${context.parsed.y}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        type: 'linear',
+        display: true,
+        position: 'left',
+        min: 0,
+        max: 5,
+        title: {
+          display: true,
+          text: '⭐ Average Rating (1-5)',
+          color: '#7B3F00',
+          font: {
+            size: 11,
+            weight: 'bold'
+          }
+        },
+        ticks: {
+          color: '#7B3F00',
+          font: {
+            size: 10
+          },
+          callback: function(value) {
+            const emojis = ['😞', '😐', '😊', '🌟', '🎉'];
+            return `${emojis[value - 1] || ''} ${value}`;
+          }
+        },
+        grid: {
+          color: 'rgba(123, 63, 0, 0.1)',
+          drawBorder: true,
+          borderColor: '#7B3F00'
+        }
+      },
+      y1: {
+        type: 'linear',
+        display: true,
+        position: 'right',
+        title: {
+          display: true,
+          text: '📝 Feedback Count',
+          color: '#22c55e',
+          font: {
+            size: 11,
+            weight: 'bold'
+          }
+        },
+        ticks: {
+          color: '#22c55e',
+          font: {
+            size: 10
+          }
+        },
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
+      x: {
+        ticks: {
+          color: '#7B3F00',
+          font: {
+            size: 10
+          }
+        },
+        grid: {
+          color: 'rgba(123, 63, 0, 0.1)',
+          drawBorder: true,
+          borderColor: '#7B3F00'
+        }
+      }
+    },
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    animation: {
+      duration: 2000,
+      easing: 'easeInOutQuart'
     }
   };
 
@@ -55,6 +284,7 @@ function FeedbackManager() {
       await axios.put(`http://localhost:5000/api/feedback/${id}/approve`);
       toast.success('Feedback approved!');
       fetchFeedback();
+      fetchRatingHistory(); // Refresh chart data
     } catch (err) {
       console.error('Failed to approve feedback:', err);
     }
@@ -65,6 +295,7 @@ function FeedbackManager() {
       await axios.put(`http://localhost:5000/api/feedback/${id}/reject`);
       toast.success('Feedback rejected!');
       fetchFeedback();
+      fetchRatingHistory(); // Refresh chart data
     } catch (err) {
       console.error('Failed to reject feedback:', err);
     }
@@ -112,7 +343,7 @@ function FeedbackManager() {
     return acc;
   }, {});
 
-  const chartData = Object.entries(ratingData).map(([rating, count]) => ({
+  const barChartData = Object.entries(ratingData).map(([rating, count]) => ({
     rating: `${rating} Star${rating > 1 ? 's' : ''}`,
     count
   }));
@@ -155,7 +386,51 @@ function FeedbackManager() {
         editing={editing} 
         setEditing={setEditing} 
         products={products}
+        fetchRatingHistory={fetchRatingHistory}
       />
+      
+      {/* Smart Rating Chart */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200 mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold text-blue-800">📊 Smart Rating Trends</h3>
+          <motion.button
+            type="button"
+            onClick={() => setShowChart(!showChart)}
+            className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            {showChart ? 'Hide Chart' : 'Show Chart'}
+          </motion.button>
+        </div>
+        
+        {showChart && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-white p-3 rounded-lg shadow-sm"
+          >
+            <div style={{ height: '300px', width: '100%' }}>
+              <Line data={chartData} options={chartOptions} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+              <div className="text-center">
+                <div className="text-lg font-bold text-[#7B3F00]">
+                  {ratingHistory.length > 0 ? ratingHistory[ratingHistory.length - 1].averageRating.toFixed(1) : '0.0'}
+                </div>
+                <div className="text-gray-600">Current Avg Rating</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-green-600">
+                  {ratingHistory.reduce((sum, item) => sum + item.count, 0)}
+                </div>
+                <div className="text-gray-600">Total Feedbacks</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
       
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -296,7 +571,7 @@ function FeedbackManager() {
         <div className="bg-white p-6 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold text-[#7B3F00] mb-4">Rating Distribution</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData}>
+            <BarChart data={barChartData}>
               <XAxis dataKey="rating" />
               <YAxis />
               <Tooltip />

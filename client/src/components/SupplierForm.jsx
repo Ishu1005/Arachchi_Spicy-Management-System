@@ -180,8 +180,9 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
     return "border-gray-300";
   };
 
-  const textInput = (name, placeholder, otherProps = {}) => (
+  const textInput = (name, placeholder, otherProps = {}, label) => (
     <div>
+      {label && <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>}
       <input
         name={name}
         placeholder={placeholder}
@@ -206,11 +207,11 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
         onSubmit={handleSubmit}
         className="space-y-4 bg-amber-50 p-9 rounded-lg shadow-md border border-[#D6A77A] max-w-xl mx-auto"
       >
-        {textInput("name", "Supplier Name")}
-        {textInput("companyName", "Company Name")}
-        {textInput("contact", "Contact Number")}
-        {textInput("email", "Email", { type: "email" })}
-        {textInput("address", "Address")}
+        {textInput("name", "Enter supplier name", {}, "Supplier Name")}
+        {textInput("companyName", "Enter company name", {}, "Company Name")}
+        {textInput("contact", "Enter contact number", {}, "Contact Number")}
+        {textInput("email", "Enter email address", { type: "email" }, "Email")}
+        {textInput("address", "Enter address", {}, "Address")}
 
         <div className="flex gap-4 text-sm">
           {["whole", "powder", "organic"].map((cat) => (
@@ -234,8 +235,9 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
           </label>
           <div className="flex gap-2 mb-2">
             <div className="w-1/2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Spice Item</label>
               <input
-                placeholder="Spice item"
+                placeholder="Enter spice item name"
                 value={newPricing.item}
                 onChange={(e) => {
                   setNewPricing({ ...newPricing, item: e.target.value });
@@ -251,8 +253,9 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
             </div>
 
             <div className="w-1/2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Unit Price</label>
               <input
-                placeholder="Unit price"
+                placeholder="Enter unit price"
                 type="number"
                 min="0.01"
                 value={newPricing.unitPrice}
@@ -335,14 +338,16 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
           </label>
         </div>
 
-        {/* Dates */}
+        {/* Contract Dates */}
         <div className="flex gap-4">
           <div className="w-1/2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Contract Start Date</label>
             <input
               type="date"
               name="contractStart"
               value={form.contractStart?.slice(0, 10)}
               onChange={handleChange}
+              min={new Date().toISOString().split('T')[0]}
               className={`p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 ${borderClass(
                 "contractStart"
               )}`}
@@ -354,11 +359,13 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
             )}
           </div>
           <div className="w-1/2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Contract End Date</label>
             <input
               type="date"
               name="contractEnd"
               value={form.contractEnd?.slice(0, 10)}
               onChange={handleChange}
+              min={form.contractStart ? form.contractStart.slice(0, 10) : new Date().toISOString().split('T')[0]}
               className={`p-2 border rounded-lg w-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 ${borderClass(
                 "contractEnd"
               )}`}
@@ -369,8 +376,8 @@ function SupplierForm({ fetchSuppliers, editing, setEditing }) {
           </div>
         </div>
 
-        {textInput("gstNumber", "GST/VAT Number")}
-        {textInput("deliverySchedule", "Delivery Schedule")}
+        {textInput("gstNumber", "Enter GST/VAT number", {}, "VAT Number")}
+        {textInput("deliverySchedule", "Enter delivery schedule", {}, "Delivery Schedule")}
 
         <button
           type="submit"

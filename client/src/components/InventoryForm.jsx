@@ -90,8 +90,14 @@ function InventoryForm({ fetchInventoryItems, editing, setEditing }) {
         {editing ? 'Update Product' : 'Add New Product'}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {['name', 'category', 'price', 'quantity'].map((field) => (
+        {[
+          { field: 'name', label: 'Product Name' },
+          { field: 'category', label: 'Category' },
+          { field: 'price', label: 'Price (Rs)' },
+          { field: 'quantity', label: 'Quantity' }
+        ].map(({ field, label }) => (
           <div key={field}>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">{label}</label>
             <input
               name={field}
               type={field === 'price' || field === 'quantity' ? 'number' : 'text'}
