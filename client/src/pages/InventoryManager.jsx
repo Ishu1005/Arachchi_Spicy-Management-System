@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import InventoryForm from '../components/InventoryForm';
+import SmartInventoryManagement from '../components/SmartInventoryManagement';
 import { toast } from 'react-toastify';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { motion } from 'framer-motion';
 
-// heroicons v2
+// heroicons v2
 import { MagnifyingGlassIcon, ArrowDownTrayIcon } from '@heroicons/react/24/solid';
 
 
 function InventoryManager() {
   const [inventoryItems, setInventoryItems] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
 
@@ -24,8 +26,18 @@ function InventoryManager() {
     }
   };
 
+  const fetchOrders = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/orders');
+      setOrders(res.data);
+    } catch (err) {
+      toast.error('Error fetching orders');
+    }
+  };
+
   useEffect(() => {
     fetchInventoryItems();
+    fetchOrders();
   }, [search]);
 
   const handleDelete = async (id) => {
@@ -82,6 +94,14 @@ function InventoryManager() {
 
 
       <InventoryForm fetchInventoryItems={fetchInventoryItems} editing={editing} setEditing={setEditing} />
+      
+      {/* Smart Inventory Management Dashboard */}
+      <div className="mt-8">
+        <SmartInventoryManagement 
+          inventoryItems={inventoryItems} 
+          orders={orders} 
+        />
+      </div>
      <div className="mt-8 mb-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       {/* Search Bar */}
       <div className="relative w-full sm:max-w-xs">

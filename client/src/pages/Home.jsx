@@ -8,6 +8,8 @@ import logo from '../assets/logo.svg';
 function Home() {
   const [user, setUser] = useState(null);
   const [products, setProducts] = useState([]);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
   const navigate = useNavigate();
 //data fetching funtion
   useEffect(() => {
@@ -25,6 +27,22 @@ function Home() {
       .get('http://localhost:5000/api/products')
       .then(res => setProducts(res.data))
       .catch(() => toast.error('Failed to load products'));
+  }, []);
+
+  // Fetch low stock count for bell notification
+  useEffect(() => {
+    axios
+      .get('http://localhost:5000/api/inventory')
+      .then(response => {
+        const lowStockItems = response.data.filter(item => item.quantity <= 10);
+        setLowStockCount(lowStockItems.length);
+        console.log('Low stock items found:', lowStockItems.length);
+      })
+      .catch(err => {
+        console.error('Error fetching inventory:', err);
+        // Set a default count for testing
+        setLowStockCount(2); // This will show 2 alerts for testing
+      });
   }, []);
 
   const handleLogout = async () => {
@@ -55,6 +73,76 @@ function Home() {
         style={{ backgroundImage: "url('/assets/cinnamon-bg.jpg')" }}
       >
         <div className="absolute inset-0 bg-black/40"></div>
+        
+        {/* Bell Notification Icon - Top Right */}
+        <div className="absolute top-6 right-6 z-20">
+          <div className="relative">
+            <button
+              onClick={() => setShowNotifications(!showNotifications)}
+              className={`p-3 rounded-full transition-colors text-xl ${
+                lowStockCount > 0 
+                  ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                  : 'bg-[#7B3F00] hover:bg-[#5C2C00] text-white'
+              }`}
+              title={`Low Stock Alerts (${lowStockCount} items)`}
+            >
+              🔔
+            </button>
+            {lowStockCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse font-bold">
+                {lowStockCount}
+              </span>
+            )}
+            {lowStockCount === 0 && (
+              <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                ✓
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Notification Panel */}
+        {showNotifications && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute top-20 right-6 z-20 bg-white rounded-lg shadow-xl border border-amber-200 p-4 max-w-sm"
+          >
+            <h4 className="text-lg font-semibold text-[#7B3F00] mb-3">Stock Alerts</h4>
+            {lowStockCount > 0 ? (
+              <div className="space-y-2">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-red-500">⚠️</span>
+                    <span className="text-sm text-red-700">
+                      {lowStockCount} items have low stock (≤10 units)
+                    </span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/inventory-manager')}
+                  className="w-full bg-[#7B3F00] text-white px-3 py-2 rounded-lg text-sm hover:bg-[#5C2C00] transition-colors"
+                >
+                  View Inventory Manager
+                </button>
+              </div>
+            ) : (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <span className="text-green-500">✓</span>
+                  <span className="text-sm text-green-700">All stock levels are adequate</span>
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => setShowNotifications(false)}
+              className="mt-2 text-xs text-gray-500 hover:text-gray-700"
+            >
+              Close
+            </button>
+          </motion.div>
+        )}
+
         <div className="relative z-10 text-center text-white px-6">
           <h1 className="text-5xl font-bold lowercase">welcome to arachchi spices</h1>
           <p className="mt-4 max-w-2xl mx-auto text-lg">

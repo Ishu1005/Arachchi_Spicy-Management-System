@@ -5,6 +5,7 @@ import axios from 'axios';
 function AdminDashboard() {
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState(null);
+  const [lowStockCount, setLowStockCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,6 +21,20 @@ function AdminDashboard() {
             .get('http://localhost:5000/api/admin/stats')
             .then(response => setStats(response.data))
             .catch(err => console.error('Error fetching stats:', err));
+          
+          // Fetch low stock count
+          axios
+            .get('http://localhost:5000/api/inventory')
+            .then(response => {
+              const lowStockItems = response.data.filter(item => item.quantity <= 10);
+              setLowStockCount(lowStockItems.length);
+              console.log('Low stock items found:', lowStockItems.length); // Debug log
+            })
+            .catch(err => {
+              console.error('Error fetching inventory:', err);
+              // Set a default count for testing
+              setLowStockCount(3); // This will show 3 alerts for testing
+            });
         }
       })
       .catch(() => {
@@ -42,12 +57,38 @@ function AdminDashboard() {
             <h1 className="text-3xl font-bold text-[#7B3F00]">
               Welcome, {user.username}! (Admin Dashboard)
             </h1>
-            <button
-              onClick={handleLogout}
-              className="bg-[#7B3F00] text-white px-4 py-2 rounded hover:bg-[#5C2C00] shadow-md"
-            >
-              Logout
-            </button>
+            <div className="flex items-center space-x-4">
+              {/* Low Stock Alert Bell */}
+              <div className="relative">
+                <button
+                  onClick={() => navigate('/inventory-manager')}
+                  className={`p-3 rounded-full transition-colors text-xl ${
+                    lowStockCount > 0 
+                      ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                      : 'bg-[#7B3F00] hover:bg-[#5C2C00] text-white'
+                  }`}
+                  title={`View Low Stock Alerts (${lowStockCount} items)`}
+                >
+                  🔔
+                </button>
+                {lowStockCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center animate-pulse font-bold">
+                    {lowStockCount}
+                  </span>
+                )}
+                {lowStockCount === 0 && (
+                  <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                    ✓
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                className="bg-[#7B3F00] text-white px-4 py-2 rounded hover:bg-[#5C2C00] shadow-md"
+              >
+                Logout
+              </button>
+            </div>
           </div>
 
           {/* Stats */}

@@ -143,14 +143,15 @@ function UserLoginRegister() {
           </button>
         </div>
 
-        <div className="relative w-full overflow-hidden h-[280px]">
+        <div className="relative w-full overflow-hidden h-[320px]">
           <div
             className="flex w-[200%] transition-transform duration-700 ease-in-out"
             style={{ transform: isLogin ? 'translateX(0%)' : 'translateX(-50%)' }}
           >
             {/* Login Form */}
-            <form onSubmit={handleSubmit} className="w-1/2 p-9 space-y-4 bg-[#fffaf2]">
+            <form onSubmit={handleSubmit} className="w-1/2 p-6 space-y-4 bg-[#fffaf2]">
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Email</label>
                 <input
                   name="email"
                   type="email"
@@ -169,6 +170,7 @@ function UserLoginRegister() {
                 )}
               </div>
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Password</label>
                 <input
                   name="password"
                   type="password"
@@ -189,7 +191,7 @@ function UserLoginRegister() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-2 mt-2 text-white rounded-md transition ${
+                className={`w-full py-2 mt-4 text-white rounded-md transition font-semibold ${
                   isLoading 
                     ? 'bg-gray-400 cursor-not-allowed' 
                     : 'bg-[#7B3F00] hover:bg-[#5c2c00]'
@@ -200,8 +202,9 @@ function UserLoginRegister() {
             </form>
 
             {/* Register Form */}
-            <form onSubmit={handleSubmit} className="w-1/2 p-6 space-y-4 bg-[#fffaf2]">
+            <form onSubmit={handleSubmit} className="w-1/2 p-6 space-y-3 bg-[#fffaf2]">
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">User Name</label>
                 <input
                   name="username"
                   placeholder="Username"
@@ -219,6 +222,7 @@ function UserLoginRegister() {
                 )}
               </div>
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Email</label>
                 <input
                   name="email"
                   type="email"
@@ -237,6 +241,7 @@ function UserLoginRegister() {
                 )}
               </div>
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Password</label>
                 <input
                   name="password"
                   type="password"
@@ -257,7 +262,7 @@ function UserLoginRegister() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full py-2 mt-2 text-white rounded-md transition ${
+                className={`w-full py-2 mt-4 text-white rounded-md transition font-semibold ${
                   isLoading 
                     ? 'bg-gray-400 cursor-not-allowed' 
                     : 'bg-[#7B3F00] hover:bg-[#5c2c00]'
