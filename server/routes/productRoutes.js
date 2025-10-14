@@ -5,9 +5,29 @@ const { createProduct, getAllProducts, updateProduct, deleteProduct } = require(
 
 const storage = multer.diskStorage({
   destination: './uploads/',
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+  filename: (req, file, cb) => {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
 });
-const upload = multer({ storage });
+
+// File filter to only allow JPG and PNG images
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+    cb(null, true);
+  } else {
+    cb(new Error('Only JPG and PNG images are allowed!'), false);
+  }
+};
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
+});
 
 router.post('/', upload.single('image'), createProduct);
 router.get('/', getAllProducts);

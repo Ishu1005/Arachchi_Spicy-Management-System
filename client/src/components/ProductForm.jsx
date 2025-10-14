@@ -16,14 +16,23 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
 
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     if (editing) {
       setForm({ ...editing, image: null }); // reset image for editing
       setErrors({});
+      
+      // Set image preview if editing and has existing image
+      if (editing.image) {
+        setImagePreview(`http://localhost:5000/uploads/${editing.image}`);
+      } else {
+        setImagePreview(null);
+      }
     } else {
       setForm(INITIAL_FORM);
       setErrors({});
+      setImagePreview(null);
     }
   }, [editing]);
 
@@ -46,6 +55,12 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         return "";
       case "image":
         if (!form.image && !editing) return "Product image is required";
+        if (form.image && !form.image.type.match(/^image\/(jpeg|jpg|png)$/)) {
+          return "Only JPG and PNG images are allowed";
+        }
+        if (form.image && form.image.size > 5 * 1024 * 1024) {
+          return "Image size must be less than 5MB";
+        }
         return "";
       default:
         return "";
@@ -70,11 +85,42 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
 
     setForm((prev) => ({ ...prev, [name]: newValue }));
 
+    // Handle image preview
+    if (name === "image" && files && files[0]) {
+      const file = files[0];
+      
+      // Validate file type
+      if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+        toast.error('Please select a JPG or PNG image file');
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
     // Live validation on field change
     setErrors((prev) => ({
       ...prev,
       [name]: validateField(name, newValue),
     }));
+  };
+
+  // Remove selected image
+  const removeImage = () => {
+    setForm(prev => ({ ...prev, image: null }));
+    setImagePreview(null);
+    setErrors(prev => ({ ...prev, image: "" }));
   };
 
   const handleSubmit = async (e) => {
@@ -112,6 +158,7 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
       }
       setForm(INITIAL_FORM);
       setErrors({});
+      setImagePreview(null);
       fetchProducts();
     } catch (err) {
       console.error(err);
@@ -282,24 +329,61 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         {/* Product Image */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Product Image</label>
-          <div className="relative">
-            <input
-              name="image"
-              type="file"
-              id="fileInput"
-              onChange={handleChange}
-              className="absolute opacity-0 w-full h-full cursor-pointer"
-              accept="image/*"
-            />
-            <button
-              type="button"
-              onClick={() => document.getElementById("fileInput").click()}
-              className={`w-full p-4 border rounded-lg text-center bg-amber-50 hover:bg-amber-100 focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
-                "image"
-              )}`}
-            >
-              {form.image ? form.image.name : "Choose Product Image"}
-            </button>
+          <div className="space-y-4">
+            {/* File Input */}
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                onChange={handleChange}
+                className="hidden"
+                id="productImage"
+                name="image"
+              />
+              <label
+                htmlFor="productImage"
+                className={`flex items-center justify-center w-full p-4 border-2 border-dashed rounded-lg cursor-pointer hover:border-amber-500 transition-colors ${borderClass("image")}`}
+              >
+                <div className="text-center">
+                  <div className="text-4xl text-amber-600 mb-2">📷</div>
+                  <p className="text-sm text-amber-600 font-medium">
+                    Click to choose JPG or PNG image
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Maximum file size: 5MB
+                  </p>
+                  {form.image && (
+                    <p className="text-xs text-green-600 mt-1 font-medium">
+                      Selected: {form.image.name}
+                    </p>
+                  )}
+                </div>
+              </label>
+            </div>
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="relative">
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Selected Image Preview:
+                </div>
+                <div className="relative inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="Product preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-amber-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                    title="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           {errors.image && (
             <p className="text-red-600 text-xs mt-1">{errors.image}</p>
