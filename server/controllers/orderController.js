@@ -84,12 +84,6 @@ exports.createOrder = async (req, res) => {
       }
     }
 
-    // Handle uploaded image
-    let productImage = null;
-    if (req.file) {
-      productImage = req.file.filename;
-    }
-
     const newOrder = {
       _id: nextOrderId++,
       items,
@@ -100,7 +94,6 @@ exports.createOrder = async (req, res) => {
       customerContact,
       orderDate: orderDateTime.toISOString(),
       orderTime: timeString,
-      productImage, // Add the uploaded image filename
       status: 'pending',
       createdBy: req.session.user.id,
       createdAt: now.toISOString()
@@ -147,17 +140,7 @@ exports.updateOrder = async (req, res) => {
       return res.status(403).json({ msg: 'Unauthorized to update this order' });
     }
 
-    // Handle uploaded image
-    let productImage = order.productImage; // Keep existing image by default
-    if (req.file) {
-      productImage = req.file.filename;
-    }
-
-    orders[orderIndex] = { 
-      ...order, 
-      ...req.body,
-      productImage // Update with new image if provided
-    };
+    orders[orderIndex] = { ...order, ...req.body };
     syncOrders(orders); // Sync with analytics
     res.json(orders[orderIndex]);
   } catch (err) {
