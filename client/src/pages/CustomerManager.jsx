@@ -33,7 +33,7 @@ function CustomerManager() {
   const generateCustomerReport = () => {
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text('Customer Report – Thamaindu Sulakshana', 14, 22);
+    doc.text('Customer Report – ', 14, 22);
     doc.setFontSize(12);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
 
