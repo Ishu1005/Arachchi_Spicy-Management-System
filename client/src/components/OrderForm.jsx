@@ -18,17 +18,61 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
       hour12: false, 
       hour: '2-digit', 
       minute: '2-digit' 
-    })
+    }),
+    productImage: null
   };
 
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   // sync when editing
   useEffect(() => {
     setForm(editing || emptyForm);
     setErrors({});
+    
+    // Set image preview if editing and has existing image
+    if (editing && editing.productImage) {
+      setImagePreview(`http://localhost:5000/uploads/${editing.productImage}`);
+    } else {
+      setImagePreview(null);
+    }
+    setSelectedImage(null);
   }, [editing]);
+
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+        toast.error('Please select a JPG or PNG image file');
+        return;
+      }
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image size must be less than 5MB');
+        return;
+      }
+      
+      setSelectedImage(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Remove selected image
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
 
   const baseInput =
     "w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]";
@@ -125,17 +169,46 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
       toast.warning("Please complete all required fields.");
       return;
     }
+    
     try {
+      // Create FormData for file upload
+      const formData = new FormData();
+      
+      // Add all form fields
+      formData.append('items', JSON.stringify(form.items));
+      formData.append('paymentMethod', form.paymentMethod);
+      formData.append('deliveryMethod', form.deliveryMethod);
+      formData.append('address', form.address);
+      formData.append('customerName', form.customerName);
+      formData.append('customerContact', form.customerContact);
+      formData.append('orderDate', form.orderDate);
+      formData.append('orderTime', form.orderTime);
+      
+      // Add image if selected
+      if (selectedImage) {
+        formData.append('productImage', selectedImage);
+      }
+      
       if (editing) {
-        await axios.put(`http://localhost:5000/api/orders/${editing._id}`, form);
+        await axios.put(`http://localhost:5000/api/orders/${editing._id}`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
         toast.success("Order updated successfully!");
         setEditing(null);
       } else {
-        await axios.post("http://localhost:5000/api/orders", form);
+        await axios.post("http://localhost:5000/api/orders", formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
         toast.success("Order created successfully!");
       }
       fetchOrders();
       setForm(emptyForm);
+      setSelectedImage(null);
+      setImagePreview(null);
     } catch (err) {
       toast.error(
         `Error: ${err.response?.data?.message || "submission failed"}`
@@ -341,6 +414,63 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
             />
             {errors.orderTime && (
               <p className="text-red-600 text-xs mt-1">{errors.orderTime}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Product Image Upload */}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">
+            Choose Product Image
+          </label>
+          <div className="space-y-4">
+            {/* File Input */}
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
+                onChange={handleImageChange}
+                className="hidden"
+                id="productImage"
+              />
+              <label
+                htmlFor="productImage"
+                className="flex items-center justify-center w-full p-4 border-2 border-dashed border-[#D6A77A] rounded-lg cursor-pointer hover:border-[#7B3F00] transition-colors"
+              >
+                <div className="text-center">
+                  <div className="text-4xl text-[#7B3F00] mb-2">📷</div>
+                  <p className="text-sm text-[#7B3F00] font-medium">
+                    Click to choose JPG or PNG image
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Maximum file size: 5MB
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* Image Preview */}
+            {imagePreview && (
+              <div className="relative">
+                <div className="text-sm font-medium text-[#7B3F00] mb-2">
+                  Selected Image Preview:
+                </div>
+                <div className="relative inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="Product preview"
+                    className="w-32 h-32 object-cover rounded-lg border border-[#D6A77A]"
+                  />
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                    title="Remove image"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
             )}
           </div>
         </div>
