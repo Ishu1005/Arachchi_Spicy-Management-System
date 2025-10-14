@@ -175,6 +175,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
             >
               {/* item name */}
               <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Item Name</label>
                 <input
                   name="name"
                   placeholder="Item name"
@@ -191,6 +192,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
               {/* quantity */}
               <div>
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Qty</label>
                 <input
                   name="quantity"
                   type="number"
@@ -209,6 +211,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
               {/* category */}
               <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Category</label>
                 <input
                   name="category"
                   placeholder="Category"
@@ -243,10 +246,11 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
         {/* payment & delivery */}
         <div className="grid gap-4 md:grid-cols-2">
           {[
-            { name: "paymentMethod", ph: "Payment method" },
-            { name: "deliveryMethod", ph: "Delivery method" }
-          ].map(({ name, ph }) => (
+            { name: "paymentMethod", ph: "Payment method", label: "Payment Method" },
+            { name: "deliveryMethod", ph: "Delivery method", label: "Delivery Method" }
+          ].map(({ name, ph, label }) => (
             <div key={name}>
+              <label className="block text-sm font-medium text-[#7B3F00] mb-2">{label}</label>
               <input
                 name={name}
                 placeholder={ph}
@@ -263,6 +267,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* address */}
         <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Delivery Address</label>
           <textarea
             name="address"
             placeholder="Delivery address"
@@ -278,14 +283,18 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* customer info */}
         <div className="grid gap-4 md:grid-cols-2">
-          <input
-            name="customerName"
-            placeholder="Customer name"
-            value={form.customerName}
-            onChange={handleChange}
-            className={`${baseInput} ${borderClass("customerName")}`}
-          />
           <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">Customer Name</label>
+            <input
+              name="customerName"
+              placeholder="Customer name"
+              value={form.customerName}
+              onChange={handleChange}
+              className={`${baseInput} ${borderClass("customerName")}`}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">Customer Contact</label>
             <input
               name="customerContact"
               placeholder="Customer contact"
