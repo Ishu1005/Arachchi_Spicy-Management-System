@@ -1,3 +1,6 @@
+// Import analytics controller for data sync
+const { syncOrders } = require('./analyticsController');
+
 // In-memory orders storage
 let orders = [
   // Sample orders with Sri Lankan addresses for testing
@@ -97,6 +100,7 @@ exports.createOrder = async (req, res) => {
     };
 
     orders.push(newOrder);
+    syncOrders(orders); // Sync with analytics
     res.status(201).json(newOrder);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -137,6 +141,7 @@ exports.updateOrder = async (req, res) => {
     }
 
     orders[orderIndex] = { ...order, ...req.body };
+    syncOrders(orders); // Sync with analytics
     res.json(orders[orderIndex]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -160,8 +165,12 @@ exports.deleteOrder = async (req, res) => {
     }
 
     orders.splice(orderIndex, 1);
+    syncOrders(orders); // Sync with analytics
     res.json({ msg: 'Order deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
+
+// Initialize analytics sync with current orders
+syncOrders(orders);
