@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
+import { getCurrentSession } from "../services/authService";
 
 function OrderForm({ fetchOrders, editing, setEditing }) {
   const emptyItem = { name: "", quantity: "" };
@@ -24,10 +25,29 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState({});
 
-  // sync when editing
+  // Load user info and sync when editing
   useEffect(() => {
-    setForm(editing || emptyForm);
-    setErrors({});
+    const loadUserInfo = async () => {
+      try {
+        const session = await getCurrentSession();
+        if (session?.user?.name) {
+          setForm(prev => ({
+            ...prev,
+            customerName: session.user.name
+          }));
+        }
+      } catch (error) {
+        console.log('Could not load user info:', error);
+      }
+    };
+
+    if (editing) {
+      setForm(editing);
+      setErrors({});
+    } else {
+      loadUserInfo();
+      setErrors({});
+    }
   }, [editing]);
 
 
