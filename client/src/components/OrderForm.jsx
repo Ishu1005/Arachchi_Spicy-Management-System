@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
 
 function OrderForm({ fetchOrders, editing, setEditing }) {
-  const emptyItem = { name: "", quantity: "", category: "" };
+  const emptyItem = { name: "", quantity: "" };
   const emptyForm = {
     items: [emptyItem],
     paymentMethod: "",
@@ -173,7 +173,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
           {form.items.map((item, idx) => (
             <div
               key={idx}
-              className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 rounded-xl bg-amber-50 border border-amber-200"
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-amber-50 border border-amber-200"
             >
               {/* item name */}
               <div className="md:col-span-2">
@@ -211,17 +211,7 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
                 )}
               </div>
 
-              {/* category */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-[#7B3F00] mb-2">Category</label>
-                <input
-                  name="category"
-                  placeholder="Category"
-                  value={item.category}
-                  onChange={(e) => handleItemChange(idx, e)}
-                  className={baseInput}
-                />
-              </div>
+              
 
               {/* remove button */}
               {form.items.length > 1 && (
