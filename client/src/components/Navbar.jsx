@@ -9,6 +9,7 @@ function Navbar() {
   const [user, setUser] = useState(null);
   const [lowStockCount, setLowStockCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
 
   // Fetch session user
@@ -22,19 +23,47 @@ function Navbar() {
   }, []);
 
   // Fetch low stock count for bell notification
-  useEffect(() => {
+  const fetchLowStockCount = async () => {
     if (user) {
-      axios
-        .get('http://localhost:5000/api/inventory')
-        .then(response => {
-          const lowStockItems = response.data.filter(item => item.quantity <= 10);
-          setLowStockCount(lowStockItems.length);
-        })
-        .catch(err => {
-          console.error('Error fetching inventory:', err);
-          setLowStockCount(0);
-        });
+      setIsRefreshing(true);
+      try {
+        const response = await axios.get('http://localhost:5000/api/inventory');
+        const lowStockItems = response.data.filter(item => item.quantity <= 10);
+        setLowStockCount(lowStockItems.length);
+      } catch (err) {
+        console.error('Error fetching inventory:', err);
+        setLowStockCount(0);
+      } finally {
+        setIsRefreshing(false);
+      }
     }
+  };
+
+  useEffect(() => {
+    fetchLowStockCount();
+  }, [user]);
+
+  // Refresh count when page becomes visible (user switches tabs/windows)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        fetchLowStockCount();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user]);
+
+  // Refresh count every 30 seconds when user is active
+  useEffect(() => {
+    if (!user) return;
+
+    const interval = setInterval(() => {
+      fetchLowStockCount();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleLogout = async () => {
@@ -168,7 +197,21 @@ function Navbar() {
           animate={{ opacity: 1, y: 0 }}
           className="absolute top-16 right-8 z-50 bg-white rounded-lg shadow-xl border border-amber-200 p-4 max-w-sm"
         >
-          <h4 className="text-lg font-semibold text-[#7B3F00] mb-3">Stock Alerts</h4>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-lg font-semibold text-[#7B3F00]">Stock Alerts</h4>
+            <button
+              onClick={fetchLowStockCount}
+              disabled={isRefreshing}
+              className={`text-xs px-2 py-1 rounded transition-colors ${
+                isRefreshing 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+              title="Refresh count"
+            >
+              {isRefreshing ? '⏳ Refreshing...' : '🔄 Refresh'}
+            </button>
+          </div>
           {lowStockCount > 0 ? (
             <div className="space-y-2">
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
