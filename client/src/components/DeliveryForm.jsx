@@ -284,6 +284,8 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
         return value.trim() ? "" : "Delivery state is required";
       case "deliveryZipCode":
         return value.trim() ? "" : "Delivery zip code is required";
+      case "addressDetails.province":
+        return value.trim() ? "" : "Province selection is required";
       case "deliveryDate":
         if (!value) return "Delivery date is required";
         const selectedDate = new Date(value);
@@ -298,10 +300,26 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
   // Validate entire form
   const validateForm = () => {
     const nextErrors = {};
+    
+    // Validate top-level fields
     Object.entries(form).forEach(([key, val]) => {
-      const err = validateField(key, val);
-      if (err) nextErrors[key] = err;
+      if (typeof val === 'string' || typeof val === 'number') {
+        const err = validateField(key, val);
+        if (err) nextErrors[key] = err;
+      }
     });
+    
+    // Validate nested addressDetails fields
+    if (form.addressDetails) {
+      Object.entries(form.addressDetails).forEach(([key, val]) => {
+        if (typeof val === 'string' || typeof val === 'number') {
+          const fieldName = `addressDetails.${key}`;
+          const err = validateField(fieldName, val);
+          if (err) nextErrors[fieldName] = err;
+        }
+      });
+    }
+    
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
@@ -309,7 +327,20 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
   // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    
+    // Handle nested object properties (e.g., addressDetails.province)
+    if (name.includes('.')) {
+      const [parentKey, childKey] = name.split('.');
+      setForm((prev) => ({
+        ...prev,
+        [parentKey]: {
+          ...prev[parentKey],
+          [childKey]: value
+        }
+      }));
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
 
     // Live validation on field change
     setErrors((prev) => ({
@@ -702,7 +733,9 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
                 name="addressDetails.province"
                 value={form.addressDetails?.province || ""}
                 onChange={handleChange}
-                className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
+                  "addressDetails.province"
+                )}`}
               >
                 <option value="">Select Province</option>
                 <option value="Western Province">Western Province</option>
@@ -715,6 +748,9 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
                 <option value="Uva Province">Uva Province</option>
                 <option value="Sabaragamuwa Province">Sabaragamuwa Province</option>
               </select>
+              {errors["addressDetails.province"] && (
+                <p className="text-red-600 text-xs mt-1">{errors["addressDetails.province"]}</p>
+              )}
             </div>
           </div>
         </div>
