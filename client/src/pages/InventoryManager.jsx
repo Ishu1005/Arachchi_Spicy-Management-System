@@ -37,6 +37,7 @@ function InventoryManager() {
 
   useEffect(() => {
     fetchInventoryItems();
+
     fetchOrders();
   }, [search]);
 
@@ -58,7 +59,7 @@ function InventoryManager() {
 
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text('Low Stock Inventory Report – Thamaindu Sulakdhans', 14, 22);
+    doc.text('Low Stock Inventory Report – ', 14, 22);
     doc.setFontSize(12);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 30);
 
@@ -121,7 +122,7 @@ function InventoryManager() {
                      text-white px-5 py-2 rounded-md shadow transition"
         >
           <ArrowDownTrayIcon className="h-5 w-5" />
-          Generate Low Stock PDF Report
+          Generate Stock PDF Report
         </button>
       </div>
 
