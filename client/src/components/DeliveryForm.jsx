@@ -796,7 +796,6 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
               {errors["addressDetails.province"] && (
                 <p className="text-red-600 text-xs mt-1">{errors["addressDetails.province"]}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">Province is automatically selected based on the district you choose</p>
             </div>
           </div>
         </div>
