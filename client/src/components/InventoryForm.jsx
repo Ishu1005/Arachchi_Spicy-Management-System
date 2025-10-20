@@ -90,27 +90,72 @@ function InventoryForm({ fetchInventoryItems, editing, setEditing }) {
         {editing ? 'Update Product' : 'Add New Product'}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-        {[
-          { field: 'name', label: 'Product Name' },
-          { field: 'category', label: 'Category' },
-          { field: 'price', label: 'Price (Rs)' },
-          { field: 'quantity', label: 'Quantity' }
-        ].map(({ field, label }) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-[#7B3F00] mb-2">{label}</label>
-            <input
-              name={field}
-              type={field === 'price' || field === 'quantity' ? 'number' : 'text'}
-              value={form[field]}
-              onChange={handleChange}
-              placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-              className={`w-full p-3 border ${borderClass(field)} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]`}
-            />
-            {errors[field] && (
-              <p className="text-red-600 text-xs mt-1">{errors[field]}</p>
-            )}
-          </div>
-        ))}
+        {/* Product Name */}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Product Name</label>
+          <input
+            name="name"
+            type="text"
+            value={form.name}
+            onChange={handleChange}
+            placeholder="Product Name"
+            className={`w-full p-3 border ${borderClass('name')} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]`}
+          />
+          {errors.name && (
+            <p className="text-red-600 text-xs mt-1">{errors.name}</p>
+          )}
+        </div>
+
+        {/* Category - Dropdown */}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Category</label>
+          <select
+            name="category"
+            value={form.category}
+            onChange={handleChange}
+            className={`w-full p-3 border ${borderClass('category')} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]`}
+          >
+            <option value="" disabled>Select category</option>
+            <option value="organic">Organic</option>
+            <option value="powder">Powder</option>
+            <option value="whole">Whole</option>
+          </select>
+          {errors.category && (
+            <p className="text-red-600 text-xs mt-1">{errors.category}</p>
+          )}
+        </div>
+
+        {/* Price */}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Price (Rs)</label>
+          <input
+            name="price"
+            type="number"
+            value={form.price}
+            onChange={handleChange}
+            placeholder="Price"
+            className={`w-full p-3 border ${borderClass('price')} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]`}
+          />
+          {errors.price && (
+            <p className="text-red-600 text-xs mt-1">{errors.price}</p>
+          )}
+        </div>
+
+        {/* Quantity */}
+        <div>
+          <label className="block text-sm font-medium text-[#7B3F00] mb-2">Quantity</label>
+          <input
+            name="quantity"
+            type="number"
+            value={form.quantity}
+            onChange={handleChange}
+            placeholder="Quantity"
+            className={`w-full p-3 border ${borderClass('quantity')} rounded-lg focus:outline-none focus:ring-2 focus:ring-[#7B3F00] text-[#5C2C00]`}
+          />
+          {errors.quantity && (
+            <p className="text-red-600 text-xs mt-1">{errors.quantity}</p>
+          )}
+        </div>
         <button
           type="submit"
           className="w-full bg-[#7B3F00] text-white py-3 rounded-lg hover:bg-[#5A2D00] transition-colors"
