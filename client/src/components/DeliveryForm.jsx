@@ -95,6 +95,35 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
     bulkOrderSuggestion: false
   });
 
+  // District to Province Mapping
+  const districtToProvince = {
+    "Colombo": "Western Province",
+    "Gampaha": "Western Province", 
+    "Kalutara": "Western Province",
+    "Kandy": "Central Province",
+    "Matale": "Central Province",
+    "Nuwara Eliya": "Central Province",
+    "Galle": "Southern Province",
+    "Matara": "Southern Province",
+    "Hambantota": "Southern Province",
+    "Jaffna": "Northern Province",
+    "Kilinochchi": "Northern Province",
+    "Mannar": "Northern Province",
+    "Vavuniya": "Northern Province",
+    "Mullaitivu": "Northern Province",
+    "Batticaloa": "Eastern Province",
+    "Ampara": "Eastern Province",
+    "Trincomalee": "Eastern Province",
+    "Kurunegala": "North Western Province",
+    "Puttalam": "North Western Province",
+    "Anuradhapura": "North Central Province",
+    "Polonnaruwa": "North Central Province",
+    "Badulla": "Uva Province",
+    "Monaragala": "Uva Province",
+    "Ratnapura": "Sabaragamuwa Province",
+    "Kegalle": "Sabaragamuwa Province"
+  };
+
   // Delivery Methods Configuration
   const deliveryMethods = {
     standard: {
@@ -346,6 +375,32 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
     setErrors((prev) => ({
       ...prev,
       [name]: validateField(name, value),
+    }));
+  };
+
+  // Handle district selection and auto-populate province
+  const handleDistrictSelection = (e) => {
+    const { value } = e.target;
+    
+    // Update district
+    setForm((prev) => ({ ...prev, deliveryState: value }));
+    
+    // Auto-populate province based on district
+    if (value && districtToProvince[value]) {
+      setForm((prev) => ({
+        ...prev,
+        addressDetails: {
+          ...prev.addressDetails,
+          province: districtToProvince[value]
+        }
+      }));
+    }
+    
+    // Clear errors for both fields
+    setErrors((prev) => ({
+      ...prev,
+      deliveryState: "",
+      "addressDetails.province": ""
     }));
   };
 
@@ -673,7 +728,7 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
                 <select
                   name="deliveryState"
                   value={form.deliveryState}
-                  onChange={handleChange}
+                  onChange={handleDistrictSelection}
                   className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
                     "deliveryState"
                   )}`}
@@ -726,31 +781,22 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
               </div>
             </div>
 
-            {/* Province */}
+            {/* Province - Auto-populated */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Province</label>
-              <select
+              <input
                 name="addressDetails.province"
                 value={form.addressDetails?.province || ""}
-                onChange={handleChange}
-                className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 ${borderClass(
+                readOnly
+                placeholder="Province will be auto-selected based on district"
+                className={`w-full p-4 border rounded-lg bg-gray-50 text-gray-700 ${borderClass(
                   "addressDetails.province"
                 )}`}
-              >
-                <option value="">Select Province</option>
-                <option value="Western Province">Western Province</option>
-                <option value="Central Province">Central Province</option>
-                <option value="Southern Province">Southern Province</option>
-                <option value="Northern Province">Northern Province</option>
-                <option value="Eastern Province">Eastern Province</option>
-                <option value="North Central Province">North Central Province</option>
-                <option value="North Western Province">North Western Province</option>
-                <option value="Uva Province">Uva Province</option>
-                <option value="Sabaragamuwa Province">Sabaragamuwa Province</option>
-              </select>
+              />
               {errors["addressDetails.province"] && (
                 <p className="text-red-600 text-xs mt-1">{errors["addressDetails.province"]}</p>
               )}
+              <p className="text-xs text-gray-500 mt-1">Province is automatically selected based on the district you choose</p>
             </div>
           </div>
         </div>
