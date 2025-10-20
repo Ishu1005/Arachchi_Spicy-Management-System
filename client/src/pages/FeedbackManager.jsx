@@ -34,7 +34,6 @@ ChartJS.register(
 function FeedbackManager() {
   const [feedback, setFeedback] = useState([]);
   const [products, setProducts] = useState([]);
-  const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [ratingHistory, setRatingHistory] = useState([]);
@@ -383,8 +382,6 @@ function FeedbackManager() {
       {/* Feedback Form */}
       <FeedbackForm 
         fetchFeedback={fetchFeedback} 
-        editing={editing} 
-        setEditing={setEditing} 
         products={products}
         fetchRatingHistory={fetchRatingHistory}
       />
@@ -509,12 +506,6 @@ function FeedbackManager() {
                 </td>
                 <td className="p-4">
                   <div className="flex space-x-2">
-                    <button 
-                      onClick={() => setEditing(f)} 
-                      className="text-blue-600 hover:underline text-sm"
-                    >
-                      Edit
-                    </button>
                     {f.status === 'pending' && (
                       <>
                         <button 

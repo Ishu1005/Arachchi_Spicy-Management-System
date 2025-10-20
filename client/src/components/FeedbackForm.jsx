@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
 import { getCurrentSession } from "../services/authService";
 
-function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatingHistory }) {
+function FeedbackForm({ fetchFeedback, products, fetchRatingHistory }) {
   const INITIAL_FORM = {
     customerName: "",
     customerEmail: "",
@@ -89,14 +89,9 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatin
       }
     };
 
-    if (editing) {
-      setForm({ ...editing });
-      setErrors({});
-    } else {
-      loadUserInfo();
-      setErrors({});
-    }
-  }, [editing]);
+    loadUserInfo();
+    setErrors({});
+  }, []);
 
   // Fetch customers for auto-suggestion
   useEffect(() => {
@@ -262,17 +257,8 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatin
     }
 
     try {
-      if (editing) {
-        await axios.put(
-          `http://localhost:5000/api/feedback/${editing._id}`,
-          form
-        );
-        toast.success("Feedback updated successfully!");
-        setEditing(null);
-      } else {
-        await axios.post("http://localhost:5000/api/feedback", form);
-        toast.success("Feedback added successfully!");
-      }
+      await axios.post("http://localhost:5000/api/feedback", form);
+      toast.success("Feedback added successfully!");
       setForm(INITIAL_FORM);
       setErrors({});
       fetchFeedback();
@@ -301,7 +287,7 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatin
         className="space-y-6 p-8 bg-white shadow-lg rounded-xl border border-amber-200 mx-auto max-w-2xl"
       >
         <h2 className="text-2xl font-bold text-center text-[#7B3F00]">
-          {editing ? "Edit Feedback" : "Add New Feedback"}
+          Add New Feedback
         </h2>
 
         {/* Customer Name */}
@@ -536,41 +522,11 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatin
           )}
         </div>
 
-        {/* Status (only for editing) */}
-        {editing && (
-          <div>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-        )}
-
-        {/* Public Visibility (only for editing) */}
-        {editing && (
-          <div className="flex items-center space-x-2">
-            <input
-              name="isPublic"
-              type="checkbox"
-              checked={form.isPublic}
-              onChange={handleChange}
-              className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
-            />
-            <label className="text-sm text-gray-700">Make feedback public</label>
-          </div>
-        )}
-
         <button
           type="submit"
           className="w-full bg-[#7B3F00] text-white py-3 rounded-lg hover:bg-[#6A2C00] transition duration-300"
         >
-          {editing ? "Update Feedback" : "Add Feedback"}
+          Add Feedback
         </button>
       </form>
     </>
