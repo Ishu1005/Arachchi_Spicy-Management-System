@@ -237,24 +237,41 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* payment & delivery */}
         <div className="grid gap-4 md:grid-cols-2">
-          {[
-            { name: "paymentMethod", ph: "Payment method", label: "Payment Method" },
-            { name: "deliveryMethod", ph: "Delivery method", label: "Delivery Method" }
-          ].map(({ name, ph, label }) => (
-            <div key={name}>
-              <label className="block text-sm font-medium text-[#7B3F00] mb-2">{label}</label>
-              <input
-                name={name}
-                placeholder={ph}
-                value={form[name]}
-                onChange={handleChange}
-                className={`${baseInput} ${borderClass(name)}`}
-              />
-              {errors[name] && (
-                <p className="text-red-600 text-xs mt-1">{errors[name]}</p>
-              )}
-            </div>
-          ))}
+          {/* Payment Method (text input) */}
+          <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">Payment Method</label>
+            <input
+              name="paymentMethod"
+              placeholder="Payment method"
+              value={form.paymentMethod}
+              onChange={handleChange}
+              className={`${baseInput} ${borderClass("paymentMethod")}`}
+            />
+            {errors.paymentMethod && (
+              <p className="text-red-600 text-xs mt-1">{errors.paymentMethod}</p>
+            )}
+          </div>
+
+          {/* Delivery Method (select) */}
+          <div>
+            <label className="block text-sm font-medium text-[#7B3F00] mb-2">Delivery Method</label>
+            <select
+              name="deliveryMethod"
+              value={form.deliveryMethod}
+              onChange={handleChange}
+              className={`${baseInput} ${borderClass("deliveryMethod")}`}
+            >
+              <option value="" disabled>Select delivery method</option>
+              <option value="Standard Home Delivery">Standard Home delivery</option>
+              <option value="Express Delivery">Express delivery</option>
+              <option value="Pickup Point">Pickup point</option>
+              <option value="Third-party Courier Delivery">Third-party courier delivery</option>
+              <option value="Eco-friendly">Eco-friendly</option>
+            </select>
+            {errors.deliveryMethod && (
+              <p className="text-red-600 text-xs mt-1">{errors.deliveryMethod}</p>
+            )}
+          </div>
         </div>
 
         {/* address */}
