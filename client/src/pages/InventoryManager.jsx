@@ -126,6 +126,67 @@ function InventoryManager() {
         </button>
       </div>
 
+      {/* Low Stock Alert Section */}
+      {(() => {
+        const lowStockItems = inventoryItems.filter(item => item.quantity <= 10);
+        const lowStockCount = lowStockItems.length;
+        
+        if (lowStockCount > 0) {
+          return (
+            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl">⚠️</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-800">
+                      Low Stock Alert: {lowStockCount} items need attention
+                    </h3>
+                    <p className="text-sm text-red-600">
+                      Items with quantity ≤ 10 units
+                    </p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-red-600">{lowStockCount}</div>
+                  <div className="text-xs text-red-500">items</div>
+                </div>
+              </div>
+              
+              {/* Low Stock Items List */}
+              <div className="mt-4 space-y-2">
+                {lowStockItems.map(item => (
+                  <div key={item._id} className="flex items-center justify-between bg-white p-3 rounded border border-red-200">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="font-medium text-gray-800">{item.name}</span>
+                      <span className="text-sm text-gray-500">({item.category})</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-semibold text-red-600">{item.quantity} units</div>
+                      <div className="text-xs text-gray-500">Rs. {item.price}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="text-2xl">✅</div>
+                <div>
+                  <h3 className="text-lg font-semibold text-green-800">All Stock Levels Adequate</h3>
+                  <p className="text-sm text-green-600">
+                    No items with low stock (≤10 units)
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        }
+      })()}
+
       <table className="w-full mt-6 text-left border">
         <thead>
           <tr className="bg-[#F1E1C6]">
@@ -138,18 +199,30 @@ function InventoryManager() {
         </thead>
         <tbody>
           {inventoryItems.length > 0 ? (
-            inventoryItems.map(item => (
-              <tr key={item._id} className="border-t hover:bg-[#FFEDD5]">
-                <td className="p-4">{item.name}</td>
-                <td>{item.category}</td>
-                <td>{item.price}</td>
-                <td>{item.quantity}</td>
-                <td>
-                  <button onClick={() => setEditing(item)} className="text-blue-600">Edit</button>
-                  <button onClick={() => handleDelete(item._id)} className="ml-2 text-red-600">Delete</button>
-                </td>
-              </tr>
-            ))
+            inventoryItems.map(item => {
+              const isLowStock = item.quantity <= 10;
+              return (
+                <tr key={item._id} className={`border-t hover:bg-[#FFEDD5] ${isLowStock ? 'bg-red-50' : ''}`}>
+                  <td className="p-4">
+                    <div className="flex items-center space-x-2">
+                      {isLowStock && <span className="text-red-500">⚠️</span>}
+                      <span className={isLowStock ? 'font-semibold text-red-800' : ''}>{item.name}</span>
+                    </div>
+                  </td>
+                  <td>{item.category}</td>
+                  <td>{item.price}</td>
+                  <td>
+                    <span className={isLowStock ? 'font-semibold text-red-600' : ''}>
+                      {item.quantity}
+                    </span>
+                  </td>
+                  <td>
+                    <button onClick={() => setEditing(item)} className="text-blue-600">Edit</button>
+                    <button onClick={() => handleDelete(item._id)} className="ml-2 text-red-600">Delete</button>
+                  </td>
+                </tr>
+              );
+            })
           ) : (
             <tr>
               <td colSpan="5" className="text-center p-4 text-[#7B3F00]">No inventory items available.</td>
