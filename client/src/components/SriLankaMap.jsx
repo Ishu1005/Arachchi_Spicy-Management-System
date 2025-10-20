@@ -116,10 +116,21 @@ const SriLankaMap = ({ isOpen, onClose, order }) => {
                 <div className="mb-4 p-3 bg-white rounded-lg border">
                   <div className="flex items-start gap-2">
                     <MapPinIcon className="h-5 w-5 text-red-500 mt-0.5" />
-                    <div>
+                    <div className="flex-1">
                       <div className="font-medium text-gray-800">Delivery Address:</div>
                       <div className="text-gray-600">{order.address}</div>
                     </div>
+                    <button
+                      onClick={() => {
+                        const encodedAddress = encodeURIComponent(order.address + ', Sri Lanka');
+                        const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+                        window.open(googleMapsUrl, '_blank');
+                      }}
+                      className="ml-2 px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+                    >
+                      <MapPinIcon className="h-4 w-4" />
+                      Open in Google Maps
+                    </button>
                   </div>
                 </div>
 
