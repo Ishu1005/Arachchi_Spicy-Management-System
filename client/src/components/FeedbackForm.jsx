@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
+import { getCurrentSession } from "../services/authService";
 
 function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatingHistory }) {
   const INITIAL_FORM = {
@@ -74,11 +75,25 @@ function FeedbackForm({ fetchFeedback, editing, setEditing, products, fetchRatin
   };
 
   useEffect(() => {
+    const loadUserInfo = async () => {
+      try {
+        const session = await getCurrentSession();
+        if (session?.user?.name) {
+          setForm(prev => ({
+            ...prev,
+            customerName: session.user.name
+          }));
+        }
+      } catch (error) {
+        console.log('Could not load user info:', error);
+      }
+    };
+
     if (editing) {
       setForm({ ...editing });
       setErrors({});
     } else {
-      setForm(INITIAL_FORM);
+      loadUserInfo();
       setErrors({});
     }
   }, [editing]);
