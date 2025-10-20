@@ -272,7 +272,10 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
         if (value === "") return "Customer email is required";
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "" : "Invalid email format";
       case "customerPhone":
-        return value.trim() ? "" : "Customer phone is required";
+        if (!value.trim()) return "Customer phone is required";
+        if (!/^\d+$/.test(value)) return "Phone number must contain only numbers";
+        if (value.length < 7 || value.length > 15) return "Phone number must be between 7-15 digits";
+        return "";
       case "deliveryAddress":
         return value.trim() ? "" : "Delivery address is required";
       case "deliveryCity":
@@ -573,9 +576,14 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
           <label className="block text-sm font-medium text-gray-700 mb-2">Customer Phone</label>
           <input
             name="customerPhone"
-            placeholder="Enter customer phone number"
+            type="tel"
+            placeholder="Enter customer phone number (numbers only)"
             value={form.customerPhone}
-            onChange={handleChange}
+            onChange={(e) => {
+              // Only allow numbers
+              const value = e.target.value.replace(/[^0-9]/g, '');
+              handleChange({ target: { name: e.target.name, value } });
+            }}
             className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
               "customerPhone"
             )}`}
@@ -583,6 +591,7 @@ function DeliveryForm({ fetchDelivery, editing, setEditing, orders }) {
           {errors.customerPhone && (
             <p className="text-red-600 text-xs mt-1">{errors.customerPhone}</p>
           )}
+          <p className="text-xs text-gray-500 mt-1">Enter phone number with digits only (7-15 digits)</p>
         </div>
 
         {/* Enhanced Delivery Address Section */}
