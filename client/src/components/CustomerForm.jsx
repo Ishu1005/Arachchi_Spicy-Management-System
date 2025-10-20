@@ -18,7 +18,7 @@ function CustomerForm({ fetchCustomers, editing, setEditing }) {
 
 
   const emailRegex = /^[\w-.]+@[\w-]+\.[A-Za-z]{2,}$/;
-  const phoneRegex = /^\d{7,15}$/; // simple digits 7‑15 chars
+  const phoneRegex = /^\d{10}$/; // exactly 10 digits
 
   const validateField = (name, value) => {
     switch (name) {
@@ -26,7 +26,7 @@ function CustomerForm({ fetchCustomers, editing, setEditing }) {
         return value.trim() ? "" : "Name is required";
       case "contact":
         if (!value) return "Contact number is required";
-        return phoneRegex.test(value) ? "" : "Invalid phone (7‑15 digits)";
+        return phoneRegex.test(value) ? "" : "Invalid phone (exactly 10 digits)";
       case "email":
         if (!value) return "Email is required";
         return emailRegex.test(value) ? "" : "Invalid email";
@@ -99,7 +99,11 @@ function CustomerForm({ fetchCustomers, editing, setEditing }) {
         type={type}
         name={name}
         value={form[name]}
-        onChange={handleChange}
+        onChange={name === "contact" ? (e) => {
+          // Only allow numbers and limit to 10 digits
+          const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
+          handleChange({ target: { name: e.target.name, value } });
+        } : handleChange}
         placeholder={placeholder}
         className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
           name
@@ -107,6 +111,9 @@ function CustomerForm({ fetchCustomers, editing, setEditing }) {
       />
       {errors[name] && (
         <p className="text-red-600 text-xs mt-1">{errors[name]}</p>
+      )}
+      {name === "contact" && (
+        <p className="text-xs text-gray-500 mt-1">Enter exactly 10 digits (e.g., 0771234567)</p>
       )}
     </div>
   );
