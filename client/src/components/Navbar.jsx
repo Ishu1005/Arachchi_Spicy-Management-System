@@ -10,6 +10,7 @@ function Navbar() {
   const [lowStockCount, setLowStockCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [seenNotifications, setSeenNotifications] = useState(new Set());
   const navigate = useNavigate();
 
   // Fetch session user
@@ -29,7 +30,13 @@ function Navbar() {
       try {
         const response = await axios.get('http://localhost:5000/api/inventory');
         const lowStockItems = response.data.filter(item => item.quantity <= 10);
-        setLowStockCount(lowStockItems.length);
+        const currentCount = lowStockItems.length;
+        setLowStockCount(currentCount);
+        
+        // If count increased, reset seen notifications
+        if (currentCount > seenNotifications.size) {
+          setSeenNotifications(new Set());
+        }
       } catch (err) {
         console.error('Error fetching inventory:', err);
         setLowStockCount(0);
@@ -38,6 +45,16 @@ function Navbar() {
       }
     }
   };
+
+  // Mark notifications as seen
+  const markAsSeen = () => {
+    const currentTimestamp = Date.now();
+    setSeenNotifications(new Set([currentTimestamp]));
+    toast.success('Notifications marked as seen');
+  };
+
+  // Check if there are unseen notifications
+  const hasUnseenNotifications = lowStockCount > 0 && seenNotifications.size === 0;
 
   useEffect(() => {
     fetchLowStockCount();
@@ -143,16 +160,22 @@ function Navbar() {
             <button
               onClick={() => setShowNotifications(!showNotifications)}
               className={`p-2 rounded-full transition-colors text-lg ${
-                lowStockCount > 0 
+                hasUnseenNotifications
                   ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                  : lowStockCount > 0
+                  ? 'bg-orange-500 hover:bg-orange-600 text-white'
                   : 'bg-[#7B3F00] hover:bg-[#5C2C00] text-white'
               }`}
-              title={`Low Stock Alerts (${lowStockCount} items)`}
+              title={`Low Stock Alerts (${lowStockCount} items)${hasUnseenNotifications ? ' - New!' : ''}`}
             >
               🔔
             </button>
             {lowStockCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse font-bold">
+              <span className={`absolute -top-1 -right-1 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold ${
+                hasUnseenNotifications 
+                  ? 'bg-red-500 animate-pulse' 
+                  : 'bg-orange-500'
+              }`}>
                 {lowStockCount}
               </span>
             )}
@@ -198,19 +221,37 @@ function Navbar() {
           className="absolute top-16 right-8 z-50 bg-white rounded-lg shadow-xl border border-amber-200 p-4 max-w-sm"
         >
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-lg font-semibold text-[#7B3F00]">Stock Alerts</h4>
-            <button
-              onClick={fetchLowStockCount}
-              disabled={isRefreshing}
-              className={`text-xs px-2 py-1 rounded transition-colors ${
-                isRefreshing 
-                  ? 'text-gray-400 cursor-not-allowed' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-              }`}
-              title="Refresh count"
-            >
-              {isRefreshing ? '⏳ Refreshing...' : '🔄 Refresh'}
-            </button>
+            <div className="flex items-center space-x-2">
+              <h4 className="text-lg font-semibold text-[#7B3F00]">Stock Alerts</h4>
+              {hasUnseenNotifications && (
+                <span className="text-xs bg-red-500 text-white px-2 py-1 rounded-full animate-pulse">
+                  NEW
+                </span>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              {hasUnseenNotifications && (
+                <button
+                  onClick={markAsSeen}
+                  className="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition-colors"
+                  title="Mark as seen"
+                >
+                  ✓ Seen
+                </button>
+              )}
+              <button
+                onClick={fetchLowStockCount}
+                disabled={isRefreshing}
+                className={`text-xs px-2 py-1 rounded transition-colors ${
+                  isRefreshing 
+                    ? 'text-gray-400 cursor-not-allowed' 
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                }`}
+                title="Refresh count"
+              >
+                {isRefreshing ? '⏳ Refreshing...' : '🔄 Refresh'}
+              </button>
+            </div>
           </div>
           {lowStockCount > 0 ? (
             <div className="space-y-2">
