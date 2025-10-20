@@ -237,16 +237,23 @@ function OrderForm({ fetchOrders, editing, setEditing }) {
 
         {/* payment & delivery */}
         <div className="grid gap-4 md:grid-cols-2">
-          {/* Payment Method (text input) */}
+          {/* Payment Method (select) */}
           <div>
             <label className="block text-sm font-medium text-[#7B3F00] mb-2">Payment Method</label>
-            <input
+            <select
               name="paymentMethod"
-              placeholder="Payment method"
               value={form.paymentMethod}
               onChange={handleChange}
               className={`${baseInput} ${borderClass("paymentMethod")}`}
-            />
+            >
+              <option value="" disabled>Select payment method</option>
+              <option value="Cash on Delivery">Cash on Delivery</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Mobile Payment">Mobile Payment</option>
+              <option value="Digital Wallet">Digital Wallet</option>
+            </select>
             {errors.paymentMethod && (
               <p className="text-red-600 text-xs mt-1">{errors.paymentMethod}</p>
             )}
