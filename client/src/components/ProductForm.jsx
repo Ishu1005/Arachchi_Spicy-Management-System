@@ -247,16 +247,16 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
           <div className="flex space-x-2">
-            <input
-              name="quantity"
-              placeholder="Enter quantity"
-              type="number"
-              value={form.quantity}
-              onChange={handleChange}
+          <input
+            name="quantity"
+            placeholder="Enter quantity"
+            type="number"
+            value={form.quantity}
+            onChange={handleChange}
               className={`flex-1 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
-                "quantity"
-              )}`}
-            />
+              "quantity"
+            )}`}
+          />
             <select
               name="quantityType"
               value={form.quantityType}
