@@ -77,38 +77,302 @@ function DeliveryManager() {
 
   const exportPDF = () => {
     const doc = new jsPDF();
+    
+    // Add header
+    doc.setFontSize(20);
+    doc.setTextColor(123, 63, 0); // #7B3F00 color
+    doc.text('Arachchi Spicy Management System', 20, 20);
+    doc.setFontSize(16);
+    doc.text('Delivery Report', 20, 30);
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 20, 40);
+    
+    // Add summary statistics
+    doc.setFontSize(12);
+    doc.text('Summary Statistics:', 20, 55);
+    doc.setFontSize(10);
+    doc.text(`Total Deliveries: ${deliveries.length}`, 20, 65);
+    doc.text(`Pending: ${deliveries.filter(d => d.status === 'pending').length}`, 20, 70);
+    doc.text(`In Transit: ${deliveries.filter(d => d.status === 'in_transit').length}`, 20, 75);
+    doc.text(`Delivered: ${deliveries.filter(d => d.status === 'delivered').length}`, 20, 80);
+    doc.text(`Failed: ${deliveries.filter(d => d.status === 'failed').length}`, 20, 85);
+    
+    // Calculate success rate
+    const successRate = deliveries.length > 0 
+      ? Math.round((deliveries.filter(d => d.status === 'delivered').length / deliveries.length) * 100)
+      : 0;
+    doc.text(`Success Rate: ${successRate}%`, 20, 90);
+    
+    // Add main delivery table with comprehensive details
+    const tableData = deliveries.map(d => [
+      d.customerName || 'N/A',
+      d.customerEmail || 'N/A',
+      d.customerPhone || 'N/A',
+      d.orderId?.orderNumber || 'N/A',
+      d.orderId?.totalAmount ? `Rs. ${d.orderId.totalAmount}` : 'N/A',
+      d.deliveryAddress || 'N/A',
+      d.deliveryCity || 'N/A',
+      d.deliveryState || 'N/A',
+      d.deliveryZipCode || 'N/A',
+      d.addressDetails?.province || 'N/A',
+      d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString() : 'N/A',
+      d.status || 'N/A',
+      d.trackingNumber || 'N/A',
+      d.agentDetails?.agentName || 'N/A',
+      d.agentDetails?.agentPhone || 'N/A',
+      d.agentDetails?.vehicleNumber || 'N/A',
+      d.deliveryMethod?.type || 'N/A',
+      d.deliveryMethod?.charge ? `Rs. ${d.deliveryMethod.charge}` : 'N/A',
+      d.deliveryMethod?.estimatedTime || 'N/A',
+      d.deliveryNotes || 'N/A'
+    ]);
+    
     autoTable(doc, {
-      head: [['Customer', 'Order', 'Address', 'Status', 'Delivery Date', 'Tracking']],
-      body: deliveries.map(d => [
-        d.customerName,
-        d.orderId?.orderNumber || 'N/A',
-        `${d.deliveryCity}, ${d.deliveryState}`,
-        d.status,
-        new Date(d.deliveryDate).toLocaleDateString(),
-        d.trackingNumber
-      ])
+      startY: 100,
+      head: [[
+        'Customer Name', 'Email', 'Phone', 'Order #', 'Amount', 
+        'Address', 'City', 'District', 'Postal Code', 'Province',
+        'Delivery Date', 'Status', 'Tracking #', 'Driver Name', 'Driver Phone',
+        'Vehicle #', 'Delivery Method', 'Charge', 'ETA', 'Notes'
+      ]],
+      body: tableData,
+      styles: {
+        fontSize: 7,
+        cellPadding: 2,
+        overflow: 'linebreak',
+        halign: 'left'
+      },
+      headStyles: {
+        fillColor: [123, 63, 0], // #7B3F00 color
+        textColor: 255,
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [255, 250, 242] // #fffaf2 color
+      },
+      margin: { left: 10, right: 10 },
+      tableWidth: 'auto',
+      columnStyles: {
+        0: { cellWidth: 25 }, // Customer Name
+        1: { cellWidth: 30 }, // Email
+        2: { cellWidth: 20 }, // Phone
+        3: { cellWidth: 15 }, // Order #
+        4: { cellWidth: 15 }, // Amount
+        5: { cellWidth: 35 }, // Address
+        6: { cellWidth: 20 }, // City
+        7: { cellWidth: 20 }, // District
+        8: { cellWidth: 15 }, // Postal Code
+        9: { cellWidth: 25 }, // Province
+        10: { cellWidth: 20 }, // Delivery Date
+        11: { cellWidth: 15 }, // Status
+        12: { cellWidth: 20 }, // Tracking #
+        13: { cellWidth: 25 }, // Driver Name
+        14: { cellWidth: 20 }, // Driver Phone
+        15: { cellWidth: 20 }, // Vehicle #
+        16: { cellWidth: 20 }, // Delivery Method
+        17: { cellWidth: 15 }, // Charge
+        18: { cellWidth: 15 }, // ETA
+        19: { cellWidth: 30 }  // Notes
+      }
     });
-    doc.save('delivery-report.pdf');
+    
+    // Add detailed delivery information for each delivery
+    let currentY = doc.lastAutoTable.finalY + 20;
+    
+    deliveries.forEach((delivery, index) => {
+      // Check if we need a new page
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+      
+      // Delivery header
+      doc.setFontSize(14);
+      doc.setTextColor(123, 63, 0);
+      doc.text(`Delivery #${index + 1}: ${delivery.customerName}`, 20, currentY);
+      currentY += 10;
+      
+      // Customer Information Section
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Customer Information:', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.text(`Name: ${delivery.customerName || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Email: ${delivery.customerEmail || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Phone: ${delivery.customerPhone || 'N/A'}`, 25, currentY);
+      currentY += 10;
+      
+      // Order Information Section
+      doc.setFontSize(12);
+      doc.text('Order Information:', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.text(`Order Number: ${delivery.orderId?.orderNumber || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Total Amount: ${delivery.orderId?.totalAmount ? `Rs. ${delivery.orderId.totalAmount}` : 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Payment Status: ${delivery.orderInfo?.paymentStatus || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Order Date: ${delivery.orderInfo?.orderDate ? new Date(delivery.orderInfo.orderDate).toLocaleDateString() : 'N/A'}`, 25, currentY);
+      currentY += 10;
+      
+      // Address Information Section
+      doc.setFontSize(12);
+      doc.text('Delivery Address:', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.text(`Address: ${delivery.deliveryAddress || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`City: ${delivery.deliveryCity || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`District: ${delivery.deliveryState || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Province: ${delivery.addressDetails?.province || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Postal Code: ${delivery.deliveryZipCode || 'N/A'}`, 25, currentY);
+      currentY += 10;
+      
+      // Delivery Agent Information Section
+      doc.setFontSize(12);
+      doc.text('Delivery Agent Information:', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.text(`Driver Name: ${delivery.agentDetails?.agentName || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Driver Phone: ${delivery.agentDetails?.agentPhone || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Vehicle Number: ${delivery.agentDetails?.vehicleNumber || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Delivery Status: ${delivery.agentDetails?.deliveryStatus || 'N/A'}`, 25, currentY);
+      currentY += 10;
+      
+      // Delivery Method Information Section
+      doc.setFontSize(12);
+      doc.text('Delivery Method:', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.text(`Type: ${delivery.deliveryMethod?.type || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Charge: ${delivery.deliveryMethod?.charge ? `Rs. ${delivery.deliveryMethod.charge}` : 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Estimated Time: ${delivery.deliveryMethod?.estimatedTime || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Description: ${delivery.deliveryMethod?.description || 'N/A'}`, 25, currentY);
+      currentY += 10;
+      
+      // Delivery Details Section
+      doc.setFontSize(12);
+      doc.text('Delivery Details:', 20, currentY);
+      currentY += 8;
+      
+      doc.setFontSize(10);
+      doc.text(`Delivery Date: ${delivery.deliveryDate ? new Date(delivery.deliveryDate).toLocaleDateString() : 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Status: ${delivery.status || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Tracking Number: ${delivery.trackingNumber || 'N/A'}`, 25, currentY);
+      currentY += 5;
+      doc.text(`Notes: ${delivery.deliveryNotes || 'N/A'}`, 25, currentY);
+      currentY += 10;
+      
+      // Smart Delivery Analysis Section (if available)
+      if (delivery.smartDelivery) {
+        doc.setFontSize(12);
+        doc.text('Smart Delivery Analysis:', 20, currentY);
+        currentY += 8;
+        
+        doc.setFontSize(10);
+        doc.text(`Route Optimized: ${delivery.smartDelivery.routeOptimized ? 'Yes' : 'No'}`, 25, currentY);
+        currentY += 5;
+        doc.text(`Weather Checked: ${delivery.smartDelivery.weatherChecked ? 'Yes' : 'No'}`, 25, currentY);
+        currentY += 5;
+        doc.text(`Traffic Considered: ${delivery.smartDelivery.trafficConsidered ? 'Yes' : 'No'}`, 25, currentY);
+        currentY += 5;
+        doc.text(`Bulk Order Detected: ${delivery.smartDelivery.bulkOrderDetected ? 'Yes' : 'No'}`, 25, currentY);
+        currentY += 5;
+        doc.text(`Express Delivery Suggested: ${delivery.smartDelivery.expressDeliverySuggested ? 'Yes' : 'No'}`, 25, currentY);
+        currentY += 10;
+      }
+      
+      // Order Products Section (if available)
+      if (delivery.orderInfo?.productsList && delivery.orderInfo.productsList.length > 0) {
+        doc.setFontSize(12);
+        doc.text('Ordered Products:', 20, currentY);
+        currentY += 8;
+        
+        doc.setFontSize(10);
+        delivery.orderInfo.productsList.forEach((product, productIndex) => {
+          doc.text(`${productIndex + 1}. ${product.name || product.productName || 'Unknown Product'} - Qty: ${product.quantity || 0}`, 25, currentY);
+          currentY += 5;
+        });
+        currentY += 5;
+      }
+      
+      // Add separator line
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, currentY, 190, currentY);
+      currentY += 15;
+    });
+    
+    // Add footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(128, 128, 128);
+      doc.text(`Page ${i} of ${pageCount}`, 20, 285);
+      doc.text('Arachchi Spicy Management System - Delivery Report', 20, 290);
+    }
+    
+    doc.save('comprehensive-delivery-report.pdf');
   };
 
   const exportCSV = () => {
     const csv = Papa.unparse(
       deliveries.map(d => ({
-        Customer: d.customerName,
-        Email: d.customerEmail,
-        Phone: d.customerPhone,
-        Order: d.orderId?.orderNumber || 'N/A',
-        Address: `${d.deliveryAddress}, ${d.deliveryCity}, ${d.deliveryState} ${d.deliveryZipCode}`,
-        Status: d.status,
-        'Delivery Date': new Date(d.deliveryDate).toLocaleDateString(),
+        'Customer Name': d.customerName,
+        'Customer Email': d.customerEmail,
+        'Customer Phone': d.customerPhone,
+        'Order Number': d.orderId?.orderNumber || 'N/A',
+        'Order Amount': d.orderId?.totalAmount ? `Rs. ${d.orderId.totalAmount}` : 'N/A',
+        'Payment Status': d.orderInfo?.paymentStatus || 'N/A',
+        'Order Date': d.orderInfo?.orderDate ? new Date(d.orderInfo.orderDate).toLocaleDateString() : 'N/A',
+        'Delivery Address': d.deliveryAddress,
+        'City': d.deliveryCity,
+        'District': d.deliveryState,
+        'Province': d.addressDetails?.province || 'N/A',
+        'Postal Code': d.deliveryZipCode,
+        'Delivery Date': d.deliveryDate ? new Date(d.deliveryDate).toLocaleDateString() : 'N/A',
+        'Status': d.status,
         'Tracking Number': d.trackingNumber,
-        'Delivery Person': d.deliveryPerson || 'N/A'
+        'Driver Name': d.agentDetails?.agentName || 'N/A',
+        'Driver Phone': d.agentDetails?.agentPhone || 'N/A',
+        'Vehicle Number': d.agentDetails?.vehicleNumber || 'N/A',
+        'Delivery Method': d.deliveryMethod?.type || 'N/A',
+        'Delivery Charge': d.deliveryMethod?.charge ? `Rs. ${d.deliveryMethod.charge}` : 'N/A',
+        'Estimated Time': d.deliveryMethod?.estimatedTime || 'N/A',
+        'Delivery Notes': d.deliveryNotes || 'N/A',
+        'Route Optimized': d.smartDelivery?.routeOptimized ? 'Yes' : 'No',
+        'Weather Checked': d.smartDelivery?.weatherChecked ? 'Yes' : 'No',
+        'Traffic Considered': d.smartDelivery?.trafficConsidered ? 'Yes' : 'No',
+        'Bulk Order Detected': d.smartDelivery?.bulkOrderDetected ? 'Yes' : 'No',
+        'Express Delivery Suggested': d.smartDelivery?.expressDeliverySuggested ? 'Yes' : 'No',
+        'Ordered Products': d.orderInfo?.productsList ? d.orderInfo.productsList.map(p => `${p.name || p.productName || 'Unknown'}: ${p.quantity || 0}`).join('; ') : 'N/A'
       }))
     );
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'delivery-report.csv';
+    link.download = 'comprehensive-delivery-report.csv';
     link.click();
   };
 
@@ -524,7 +788,7 @@ function DeliveryManager() {
                     text-white px-5 py-2 rounded-md shadow transition"
         >
           <ArrowDownTrayIcon className="h-5 w-5" />
-          PDF Report
+          Comprehensive PDF Report
         </button>
         <button
           onClick={exportCSV}
@@ -532,7 +796,7 @@ function DeliveryManager() {
                     text-white px-5 py-2 rounded-md shadow transition"
         >
           <ArrowDownTrayIcon className="h-5 w-5" />
-          CSV Report
+          Comprehensive CSV Report
         </button>
       </div>
 

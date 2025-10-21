@@ -16,7 +16,8 @@ const SmartQualityAssurance = ({ product }) => {
   // Simulate real-time quality data updates
   useEffect(() => {
     const generateQualityData = () => {
-      const baseQuality = product?.popularity || 3;
+      // Use quantity as base quality indicator (higher quantity = better availability)
+      const baseQuality = product?.quantity > 50 ? 4.5 : product?.quantity > 20 ? 3.5 : product?.quantity > 10 ? 2.5 : 1.5;
       const variation = 0.5;
       
       const qualityFactors = {

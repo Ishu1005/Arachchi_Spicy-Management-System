@@ -51,7 +51,7 @@ function ViewProducts() {
             <p className="text-sm italic text-cinnamon-hover">{p.category}</p>
 
             <p className="text-sm text-cinnamon mt-2">Price: ${p.price}</p>
-            <p className="text-sm text-cinnamon">Qty: {p.quantity}</p>
+            <p className="text-sm text-cinnamon">Qty: {p.quantity} {p.quantityType}</p>
           </div>
         ))}
       </div>

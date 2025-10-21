@@ -10,7 +10,7 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
     category: "whole",
     price: "",
     quantity: "",
-    popularity: "",
+    quantityType: "kg",
     image: null,
   };
 
@@ -47,12 +47,8 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
       case "quantity":
         if (value === "") return "Quantity is required";
         return Number(value) >= 0 ? "" : "Quantity cannot be negative";
-      case "popularity":
-        if (value === "") return "";
-        const popularityNum = Number(value);
-        if (popularityNum < 0) return "Popularity cannot be negative";
-        if (popularityNum > 5) return "Popularity cannot exceed 5 stars";
-        return "";
+      case "quantityType":
+        return value ? "" : "Quantity type is required";
       case "image":
         if (!form.image && !editing) return "Product image is required";
         if (form.image && !form.image.type.match(/^image\/(jpeg|jpg|png)$/)) {
@@ -250,81 +246,35 @@ function ProductForm({ fetchProducts, editing, setEditing }) {
         {/* Quantity */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-          <input
-            name="quantity"
-            placeholder="Enter quantity"
-            type="number"
-            value={form.quantity}
-            onChange={handleChange}
-            className={`w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
-              "quantity"
-            )}`}
-          />
+          <div className="flex space-x-2">
+            <input
+              name="quantity"
+              placeholder="Enter quantity"
+              type="number"
+              value={form.quantity}
+              onChange={handleChange}
+              className={`flex-1 p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 ${borderClass(
+                "quantity"
+              )}`}
+            />
+            <select
+              name="quantityType"
+              value={form.quantityType}
+              onChange={handleChange}
+              className="p-4 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+            >
+              <option value="kg">Kg</option>
+              <option value="g">g</option>
+            </select>
+          </div>
           {errors.quantity && (
             <p className="text-red-600 text-xs mt-1">{errors.quantity}</p>
           )}
-        </div>
-
-        {/* Popularity - Star Rating */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Popularity Rating (0-5 Stars)</label>
-          <div className="flex items-center space-x-2">
-            <div className="flex space-x-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => {
-                    const newValue = star.toString();
-                    setForm(prev => ({ ...prev, popularity: newValue }));
-                    setErrors(prev => ({
-                      ...prev,
-                      popularity: validateField("popularity", newValue)
-                    }));
-                  }}
-                  className={`text-2xl transition-colors duration-200 ${
-                    star <= parseInt(form.popularity || 0)
-                      ? "text-yellow-400"
-                      : "text-gray-300"
-                  } hover:text-yellow-400`}
-                >
-                  ★
-                </button>
-              ))}
-            </div>
-            <span className="text-sm font-medium text-yellow-600">
-              {form.popularity || 0}/5
-            </span>
-          </div>
-          <div className="mt-2">
-            <input
-              name="popularity"
-              placeholder="Enter rating (0-5)"
-              type="number"
-              min="0"
-              max="5"
-              step="1"
-              value={form.popularity}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Ensure value is between 0 and 5
-                if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 5)) {
-                  setForm(prev => ({ ...prev, popularity: value }));
-                  setErrors(prev => ({
-                    ...prev,
-                    popularity: validateField("popularity", value)
-                  }));
-                }
-              }}
-              className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm ${borderClass(
-                "popularity"
-              )}`}
-            />
-          </div>
-          {errors.popularity && (
-            <p className="text-red-600 text-xs mt-1">{errors.popularity}</p>
+          {errors.quantityType && (
+            <p className="text-red-600 text-xs mt-1">{errors.quantityType}</p>
           )}
         </div>
+
 
         {/* Product Image */}
         <div>

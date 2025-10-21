@@ -38,14 +38,14 @@ function ProductManager() {
   const exportPDF = () => {
     const doc = new jsPDF();
     autoTable(doc, {
-      head: [['Name', 'Category', 'Description', 'Price', 'Qty', 'Popularity']],
+      head: [['Name', 'Category', 'Description', 'Price', 'Qty', 'Qty Type']],
       body: products.map(p => [
         p.name,
         p.category,
         p.description,
         p.price,
         p.quantity,
-        p.popularity
+        p.quantityType
       ])
     });
     doc.save('spices.pdf');
@@ -59,7 +59,7 @@ function ProductManager() {
         Description: p.description,
         Price: p.price,
         Quantity: p.quantity,
-        Popularity: p.popularity
+        'Quantity Type': p.quantityType
       }))
     );
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -105,15 +105,16 @@ function ProductManager() {
             <th className="p-4 text-amber-900">Category</th>
             <th className="p-4 text-amber-900">Description</th>
             <th className="p-4 text-amber-900">Qty</th>
+            <th className="p-4 text-amber-900">Qty Type</th>
             <th className="p-4 text-amber-900">Price</th>
-            <th className="p-4 text-amber-900">Popularity</th>
             <th className="p-4 text-amber-900">Quality Status</th>
             <th className="p-4 text-amber-900">Actions</th>
           </tr>
         </thead>
         <tbody>
           {products.map(p => {
-            const qualityScore = parseFloat(p.popularity) || 0;
+            // Use quantity as a basis for quality assessment (higher quantity = better availability)
+            const qualityScore = p.quantity > 50 ? 4.5 : p.quantity > 20 ? 3.5 : p.quantity > 10 ? 2.5 : 1.5;
             const getQualityStatus = (score) => {
               if (score >= 4.5) return { text: 'Excellent', color: 'text-green-600 bg-green-50', icon: '🌟' };
               if (score >= 3.5) return { text: 'Good', color: 'text-yellow-600 bg-yellow-50', icon: '✅' };
@@ -131,17 +132,8 @@ function ProductManager() {
                 <td className="p-4">{p.category}</td>
                 <td className="p-4">{p.description}</td>
                 <td className="p-4">{p.quantity}</td>
+                <td className="p-4">{p.quantityType}</td>
                 <td className="p-4">${p.price}</td>
-                <td className="p-4">
-                  <div className="flex items-center space-x-1">
-                    {Array.from({ length: 5 }, (_, i) => (
-                      <span key={i} className={`text-sm ${i < Math.floor(qualityScore) ? 'text-yellow-400' : 'text-gray-300'}`}>
-                        ★
-                      </span>
-                    ))}
-                    <span className="text-xs text-gray-600 ml-1">{qualityScore}</span>
-                  </div>
-                </td>
                 <td className="p-4">
                   <div className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${quality.color}`}>
                     <span>{quality.icon}</span>
@@ -176,14 +168,14 @@ function ProductManager() {
             CSV Report
           </button>
         </div>
-            {/* Product Popularity Chart */}
-      <h2 className="text-xl font-semibold text-center text-amber-900 mt-8 mb-4">Product Popularity</h2>
+            {/* Product Quantity Chart */}
+      <h2 className="text-xl font-semibold text-center text-amber-900 mt-8 mb-4">Product Quantities</h2>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={products}>
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
-          <Bar dataKey="popularity" fill="#8884d8" />
+          <Bar dataKey="quantity" fill="#8884d8" />
         </BarChart>
       </ResponsiveContainer>
 

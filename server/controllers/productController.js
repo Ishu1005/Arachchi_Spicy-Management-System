@@ -7,12 +7,16 @@ let nextProductId = 1;
 
 exports.createProduct = async (req, res) => {
   try {
-    const { name, description, category, price, quantity, popularity } = req.body;
+    const { name, description, category, price, quantity, quantityType } = req.body;
     const image = req.file?.filename || 'default-product.jpg';
     
     // Validate category - only allow valid enum values
     const validCategories = ['whole', 'powder', 'organic'];
     const validatedCategory = validCategories.includes(category) ? category : 'whole';
+    
+    // Validate quantity type - only allow valid enum values
+    const validQuantityTypes = ['kg', 'g'];
+    const validatedQuantityType = validQuantityTypes.includes(quantityType) ? quantityType : 'kg';
     
     const newProduct = {
       _id: nextProductId++,
@@ -21,7 +25,7 @@ exports.createProduct = async (req, res) => {
       category: validatedCategory,
       price: parseFloat(price),
       quantity: parseInt(quantity),
-      popularity: parseInt(popularity) || 0,
+      quantityType: validatedQuantityType,
       image,
       createdAt: new Date().toISOString()
     };
